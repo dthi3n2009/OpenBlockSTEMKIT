@@ -1,0 +1,22 @@
+# Ba thư mục dưới đây là repo git RIÊNG (fork của ThingEdu), không gộp vào đây.
+# Người tiếp quản clone riêng từng cái — xem HANDOFF.md §4.
+/gui/
+/desktop/
+/external-resources/
+
+# Bộ công cụ tải về, không cần đưa lên git (xem cách cài lại trong docs/build-setup.md)
+/tools/
+
+# File cài đặt gốc của nhà sản xuất, rất nặng
+/OpenBlock-Desktop_v1.0.2_win_x64/
+/OpenBlockExternalResources.exe/
+
+# Log build, sinh ra lúc chạy
+/docs/compile-log.txt
+/docs/dev-log.txt
+
+# Bản sao main.js gốc của app (9 MB, chỉ để đối chiếu khi cần)
+/app-mods/main.js.orig
+
+node_modules/
+*.log
