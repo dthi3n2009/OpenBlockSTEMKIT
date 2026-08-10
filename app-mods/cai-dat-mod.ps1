@@ -4,12 +4,14 @@
 
     Dùng:
         powershell -ExecutionPolicy Bypass -File cai-dat-mod.ps1
+        powershell -ExecutionPolicy Bypass -File cai-dat-mod.ps1 -KemGuiBuild
         powershell -ExecutionPolicy Bypass -File cai-dat-mod.ps1 -GoBo    # gỡ mod, về bản gốc
 
     Xem HANDOFF.md §5 để hiểu vì sao phải tắt app.asar.
 #>
 param(
     [string]$AppDir = 'C:\OpenBlockDesktop',
+    [switch]$KemGuiBuild,
     [switch]$GoBo
 )
 
@@ -20,7 +22,7 @@ $appJs  = Join-Path $res 'app'
 $asar   = Join-Path $res 'app.asar'
 $asarTat= Join-Path $res 'app.asar.tam-tat'
 
-$cacFile = @('ai-assistant.js', 'lesson-mode.js', 'lessons-debasekit.js', 'userdata-guard.js')
+$cacFile = @('ai-assistant.js', 'lesson-mode.js', 'lessons-debasekit.js', 'userdata-guard.js', 'gemini-key-store.js')
 $cacScript = @('ai-assistant.js', 'lesson-mode.js')
 
 function Dung-App {
@@ -68,6 +70,26 @@ foreach ($f in $cacFile) {
     }
 }
 
+# Chép mọi video bài học đã có. Chưa có file thì app tự ẩn phần video của bài đó.
+$mediaNguon = Join-Path $modDir 'media'
+if (Test-Path $mediaNguon) {
+    $mediaDir = Join-Path $appJs 'media'
+    if (-not (Test-Path $mediaDir)) { New-Item -ItemType Directory -Path $mediaDir | Out-Null }
+    Get-ChildItem $mediaNguon -File -Filter '*.mp4' | ForEach-Object {
+        Copy-Item $_.FullName (Join-Path $mediaDir $_.Name) -Force
+        Write-Host "  chep video $($_.Name)"
+    }
+}
+
+if ($KemGuiBuild) {
+    $guiBundle = Join-Path (Split-Path $modDir -Parent) 'desktop\dist\renderer\3.bundle.js'
+    if (-not (Test-Path $guiBundle)) {
+        Write-Error "Chua co GUI build. Hay chay npm run compile trong desktop truoc."
+    }
+    Copy-Item $guiBundle (Join-Path $appJs '3.bundle.js') -Force
+    Write-Host "  chep GUI build 3.bundle.js"
+}
+
 # 3. Tiêm thẻ <script> vào index.html (bỏ qua nếu đã có)
 $indexPath = Join-Path $appJs 'index.html'
 $html = Get-Content $indexPath -Raw -Encoding UTF8
@@ -96,7 +118,17 @@ if ($main -notmatch 'userdata-guard') {
     Write-Host "  main.js da co ban va"
 }
 
-# 5. Tắt app.asar để Electron dùng thư mục app
+# 5. Nối kho API key mã hóa ở main process
+$main = Get-Content $mainPath -Raw -Encoding UTF8
+if ($main -notmatch 'gemini-key-store') {
+    $main = 'require("./gemini-key-store.js");' + "`n" + $main
+    [System.IO.File]::WriteAllText($mainPath, $main, (New-Object System.Text.UTF8Encoding $false))
+    Write-Host "  da noi kho API key ma hoa"
+} else {
+    Write-Host "  main.js da co kho API key ma hoa"
+}
+
+# 6. Tắt app.asar để Electron dùng thư mục app
 #    (Electron UU TIEN app.asar hon thu muc app -> khong tat thi moi sua deu vo nghia)
 if (Test-Path $asar) {
     if (Test-Path $asarTat) { Remove-Item $asarTat -Force }
@@ -104,7 +136,7 @@ if (Test-Path $asar) {
     Write-Host "  da tat app.asar (doi ten -> app.asar.tam-tat)"
 }
 
-# 6. Nối external-resources sang repo nguon (neu co)
+# 7. Nối external-resources sang repo nguon (neu co)
 $repoExt = Join-Path (Split-Path $modDir -Parent) 'external-resources'
 $appExt  = Join-Path $AppDir 'external-resources'
 if ((Test-Path $repoExt) -and -not ((Get-Item $appExt -ErrorAction SilentlyContinue).LinkType)) {

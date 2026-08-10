@@ -20,3 +20,76 @@
 
 node_modules/
 *.log
+
+# Bí mật và cấu hình chỉ dùng trên máy phát triển / máy chủ
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+/secrets/
+/secret/
+/config/api_keys.json
+/config/local.json
+/config/production.json
+/server/.env*
+/server/config/local.*
+/server/config/production.*
+
+# Dữ liệu cục bộ của học sinh, bản sao lưu và dữ liệu kiểm thử
+*.dehoc
+/userdata/
+/userData/
+/student-data/
+/test-data/
+/backups/
+/uploads/
+*.sqlite
+*.sqlite3
+*.db
+
+# Kết quả build và cache có thể tạo lại
+coverage/
+.nyc_output/
+dist/
+out/
+release/
+build/
+electron-dist/
+*.asar
+*.asar.unpacked
+.npm/
+.yarn/
+.pnpm-store/
+*.tsbuildinfo
+
+# Flutter (chỉ dùng nếu sau này có bản Flutter)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
+
+# File hệ thống Windows và IDE
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.dmp
+*.stackdump
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Công cụ kiểm thử nháp, không phải mã kiểm thử chính thức
+/scratchpad/
+/test-results/
+/playwright-report/
+/app-mods/test-*.js
+*.tmp
+*.orig

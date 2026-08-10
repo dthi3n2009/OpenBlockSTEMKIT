@@ -1,22 +1,45 @@
 /**
- * ThingEdu AI Assistant — offline knowledge-base chatbot for OpenBlock Desktop.
+ * ThingEdu AI Assistant — chatbot hai lớp cho OpenBlock Desktop.
  *
- * Chế độ hiện tại: 'local' — trả lời bằng bộ kiến thức đóng gói sẵn (không cần mạng).
- * Khi có API key, đổi window.ThingEduAI.config.mode = 'api' và điền endpoint/apiKey
- * bên dưới; hàm askApi() đã chừa sẵn, local sẽ tự thành phương án dự phòng.
+ * Lớp 1 chạy offline bằng bộ kiến thức đóng gói sẵn. Lớp 2 dùng Gemini khi người
+ * thử nhập API key; key chỉ giữ trong bộ nhớ và không được ghi vào source/localStorage.
  */
 (function () {
     'use strict';
 
+    if (window.location.search && !/^\?(?:locale|lang)=vi$/i.test(window.location.search)) return;
+
     // ---------------------------------------------------------------- config
+    const envApiKey = typeof process !== 'undefined' && process.env ?
+        (process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '') : '';
     const config = {
-        mode: 'local', // 'local' | 'api'
+        mode: envApiKey ? 'api' : 'local', // 'local' | 'api'
         api: {
-            endpoint: '', // ví dụ: https://your-proxy.example.com/chat
-            apiKey: '',
-            model: ''
+            endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent',
+            apiKey: envApiKey,
+            model: 'gemini-3.6-flash'
         }
     };
+    const MEMORY_PREFIX = 'te_ai_memory_v1:';
+    const ipcRenderer = typeof require === 'function' ? require('electron').ipcRenderer : null;
+
+    async function loadSavedApiKey () {
+        if (!ipcRenderer) return '';
+        try {
+            return await ipcRenderer.invoke('de-ai-key:load');
+        } catch (e) {
+            return '';
+        }
+    }
+
+    async function saveApiKey (key) {
+        if (!ipcRenderer) throw new Error('Không có kho khóa an toàn');
+        return ipcRenderer.invoke('de-ai-key:save', key);
+    }
+
+    async function clearApiKey () {
+        if (ipcRenderer) await ipcRenderer.invoke('de-ai-key:clear');
+    }
 
     // ------------------------------------------------------------- utilities
     // Bỏ dấu tiếng Việt + thường hóa để so khớp từ khóa
@@ -112,23 +135,16 @@
             chips: ['Ý tưởng dự án', 'Cảm biến độ ẩm đất']
         },
         {
+            id: 'new-project',
+            keywords: ['tu lam mot du an rieng', 'du an cua em', 'bat dau du an moi'],
+            answer: 'Được chứ! Trước tiên, em muốn sản phẩm của mình giúp giải quyết vấn đề gì?',
+            chips: ['Chăm cây', 'Đèn thông minh', 'Chuông báo']
+        },
+        {
             id: 'ideas',
             keywords: ['y tuong', 'du an', 'lam gi', 'goi y', 'project', 'de tai', 'stem'],
-            answer: [
-                'Vài ý tưởng dự án với ThingBot C3:\n' +
-                '🌱 Chậu cây thông minh — độ ẩm đất + bơm nước tự động\n' +
-                '🌡️ Trạm thời tiết mini — DHT + hiển thị OLED\n' +
-                '🤖 Robot tránh vật cản — siêu âm + 2 motor\n' +
-                '🔊 Máy đo tiếng ồn lớp học — mic analog + LED cảnh báo\n' +
-                'Hỏi tiếp về ý tưởng nào để mình hướng dẫn block cụ thể nhé!',
-                'Gợi ý theo chủ đề:\n' +
-                '🏠 Nhà thông minh: đèn tự bật khi tối, quạt tự chạy khi nóng (DHT + motor)\n' +
-                '🗑️ Thùng rác tự mở nắp — siêu âm phát hiện tay + servo mở nắp\n' +
-                '🎮 Xe điều khiển tay cầm PS2 — extension PS2 có sẵn cho ThingBot\n' +
-                '🌾 Nông nghiệp: tưới cây tự động theo độ ẩm đất\n' +
-                'Bạn thích chủ đề nào, mình chỉ block cần dùng cho!'
-            ],
-            chips: ['Ý tưởng với độ ẩm đất', 'Robot tránh vật cản', 'Xe điều khiển PS2']
+            answer: 'Em đang quan tâm điều gì nhất: cây cối, ánh sáng hay một lời nhắc trong nhà?',
+            chips: ['Chăm cây', 'Đèn thông minh', 'Chuông báo']
         },
         {
             id: 'obstacle-robot',
@@ -163,11 +179,7 @@
         {
             id: 'hello',
             keywords: ['xin chao', 'hello', 'hi', 'chao', 'ban la ai', 'help', 'giup'],
-            answer: 'Chào bạn! 👋 Mình là trợ lý AI của ThingEdu Block. Mình có thể:\n' +
-                '• Hướng dẫn dùng các cảm biến, motor, servo của ThingBot C3\n' +
-                '• Gợi ý ý tưởng dự án STEM\n' +
-                '• Xử lý lỗi kết nối, nạp chương trình\n' +
-                'Bạn bấm gợi ý bên dưới hoặc gõ câu hỏi nhé!',
+            answer: 'Chào em! 👋 Mình là chú Dế. Em đang học bài hay muốn bắt đầu một dự án mới?',
             chips: ['Ý tưởng dự án', 'Cảm biến độ ẩm đất', 'Không kết nối được']
         }
     ];
@@ -188,7 +200,10 @@
         'Cảm biến siêu âm': 'siêu âm',
         'Điều khiển motor': 'motor',
         'Robot tránh vật cản': 'robot tránh vật cản',
-        'Xe điều khiển PS2': 'ps2'
+        'Xe điều khiển PS2': 'ps2',
+        'Chăm cây': 'Em muốn làm sản phẩm giúp chăm cây',
+        'Đèn thông minh': 'Em muốn làm một chiếc đèn thông minh',
+        'Chuông báo': 'Em muốn làm một chiếc chuông báo'
     };
 
     // ---------------------------------------------------------- local engine
@@ -216,20 +231,71 @@
     }
 
     // ------------------------------------------------------------ api engine
-    // Khi có API: config.mode = 'api', điền endpoint (khuyến nghị qua server proxy
-    // giữ key, không nhúng key thẳng vào app phát cho học sinh).
-    async function askApi (question, history) {
+    function systemPrompt () {
+        const context = window.DeLessonMode && window.DeLessonMode.layNguCanh ?
+            window.DeLessonMode.layNguCanh() : null;
+        const lesson = context && context.mode === 'kit' ?
+            `Em đang học Bài ${context.lesson}: ${context.lessonName}. ` +
+            `Các nhóm khối đang dùng: ${(context.extensions || []).join(', ') || 'chưa có'}.` :
+            'Em đang làm một dự án riêng, chưa có bài học cố định.';
+
+        return [
+            'Bạn là Chú Dế, trợ lý STEM cho học sinh THCS lớp 6–9 tại Việt Nam.',
+            'Luôn xưng "chú" và gọi người học là "em". Trả lời tiếng Việt, câu ngắn, tối đa 120 từ.',
+            'Mục tiêu là giúp em tự nghĩ: hỏi ít nhất một câu gợi mở phù hợp thay vì đưa đáp án hoàn chỉnh.',
+            'Không viết trọn chương trình cho em. Nếu em hỏi code, chỉ gợi ý nhóm khối, một bước nhỏ rồi chờ em thử.',
+            'Chỉ đưa câu trả lời cuối. Không tiết lộ quá trình suy nghĩ, checklist nội bộ hay cách kiểm tra ràng buộc.',
+            'Không dùng tiêu đề Markdown hay dấu **. Nếu cần liệt kê, dùng dấu • và tối đa 3 ý.',
+            'Không tự bịa chân cắm, linh kiện hay khả năng của ThingBot. Nếu thiếu dữ kiện, hãy nói rõ và hỏi lại.',
+            'Luôn nhắc ngắt nguồn hoặc nhờ người lớn khi thao tác với relay, bơm, quạt hay nguồn điện ngoài.',
+            'Khi thử cảm biến với nước, chỉ phần que đo được chạm nước; không để bo mạch, đầu nối hay dây nguồn bị ướt.',
+            'Ví dụ, khi em nói "hello bro", hãy đáp: "Chào em 😄 Hôm nay em muốn khám phá bài học hay làm dự án riêng?"',
+            'Ví dụ, khi em hỏi chọn ngưỡng độ ẩm, hãy hỏi số đo lúc đất khô và lúc đất ẩm trước.',
+            lesson
+        ].join('\n');
+    }
+
+    async function askApi (question, history, imageDataUrl) {
+        if (!config.api.apiKey) throw new Error('Chưa có API key');
+        const contents = (history || []).slice(-8).map(message => ({
+            role: message.role === 'assistant' ? 'model' : 'user',
+            parts: [{text: message.content}]
+        }));
+        const userParts = [{text: question}];
+        const image = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(imageDataUrl || '');
+        if (image) userParts.push({inlineData: {mimeType: image[1], data: image[2]}});
+        contents.push({role: 'user', parts: userParts});
+
         const res = await fetch(config.api.endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.api.apiKey}`
+                'x-goog-api-key': config.api.apiKey,
+                'x-goog-api-client': 'thingedu-de-lab/0.1'
             },
-            body: JSON.stringify({model: config.api.model, messages: history.concat([{role: 'user', content: question}])})
+            body: JSON.stringify({
+                system_instruction: {parts: [{text: systemPrompt()}]},
+                contents: contents,
+                generationConfig: {
+                    temperature: 0.55,
+                    maxOutputTokens: 1600,
+                    thinkingConfig: {thinkingLevel: 'medium', includeThoughts: false}
+                }
+            })
         });
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        const data = await res.json();
-        return {text: data.reply || data.content || JSON.stringify(data), chips: []};
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error((data.error && data.error.message) || `Gemini ${res.status}`);
+        const parts = data.candidates && data.candidates[0] && data.candidates[0].content ?
+            data.candidates[0].content.parts || [] : [];
+        const text = parts.filter(part => !part.thought && part.text)
+            .map(part => part.text)
+            .join('\n')
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/^\s*[-*]\s+/gm, '• ')
+            .trim();
+        if (!text) throw new Error('Gemini không trả về nội dung');
+        return {text: text, chips: [], source: 'gemini'};
     }
 
     async function ask (question, history) {
@@ -238,52 +304,292 @@
                 return await askApi(question, history);
             } catch (e) {
                 const local = askLocal(question);
-                local.text = `(Mất kết nối AI, dùng trả lời offline)\n${local.text}`;
+                local.text = `(Mạng đang chậm, Chú Dế dùng kiến thức offline)\n${local.text}`;
+                local.source = 'offline';
                 return local;
             }
         }
-        return askLocal(question);
+        const local = askLocal(question);
+        local.source = 'offline';
+        return local;
+    }
+
+    async function askWithImage (question, imageDataUrl, history) {
+        if (config.mode === 'api' && config.api.endpoint) {
+            try {
+                return await askApi(question, history, imageDataUrl);
+            } catch (e) {
+                const local = askLocal(question);
+                local.text = `(Chú chưa xem được ảnh khi offline)\n${local.text}`;
+                local.source = 'offline';
+                return local;
+            }
+        }
+        const local = askLocal(question);
+        local.text = `(Chú chưa xem được ảnh khi offline)\n${local.text}`;
+        local.source = 'offline';
+        return local;
     }
 
     // ------------------------------------------------------------------- UI
     const css = `
     #te-ai-fab {
-        position: fixed; right: 18px; bottom: 18px; width: 54px; height: 54px;
+        position: fixed; right: 18px; bottom: 18px; width: 58px; height: 58px;
         border-radius: 50%; border: none; cursor: pointer; z-index: 2147483000;
-        background: linear-gradient(135deg, #00A876, #4D97FF); color: #fff;
-        font-size: 26px; box-shadow: 0 4px 14px rgba(0,0,0,.3);
+        background: linear-gradient(135deg, #00c98d 0%, #3d8dff 58%, #8b5cf6 100%); color: #fff;
+        font-size: 27px; box-shadow: 0 10px 28px rgba(46,117,230,.36), 0 0 0 5px rgba(77,151,255,.12);
         display: flex; align-items: center; justify-content: center;
+        transition: transform .18s ease, box-shadow .18s ease;
     }
-    #te-ai-fab:hover { transform: scale(1.07); }
+    #te-ai-fab:hover { transform: translateY(-2px) scale(1.06); box-shadow: 0 14px 32px rgba(46,117,230,.42); }
     #te-ai-panel {
-        position: fixed; right: 18px; bottom: 82px; width: 340px; height: 460px;
-        background: #fff; border-radius: 14px; z-index: 2147483000;
-        box-shadow: 0 8px 30px rgba(0,0,0,.35); display: none;
+        position: fixed; right: 18px; bottom: 88px; width: min(400px, calc(100vw - 28px));
+        height: min(580px, calc(100vh - 108px)); background: #fff; border-radius: 24px;
+        z-index: 2147483000; border: 1px solid rgba(82,139,190,.18);
+        box-shadow: 0 24px 70px rgba(21,52,78,.3), 0 3px 12px rgba(21,52,78,.12); display: none;
         flex-direction: column; overflow: hidden;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 14px;
     }
     #te-ai-panel.open { display: flex; }
     #te-ai-head {
-        background: linear-gradient(135deg, #00A876, #4D97FF); color: #fff;
-        padding: 10px 14px; font-weight: bold; font-size: 14px;
+        background: linear-gradient(120deg, #00b982 0%, #3d91f5 62%, #7667ee 100%); color: #fff;
+        padding: 14px 16px; font-weight: 800; font-size: 16px; min-height: 44px;
         display: flex; justify-content: space-between; align-items: center;
     }
-    #te-ai-head small { font-weight: normal; opacity: .85; display: block; font-size: 11px; }
-    #te-ai-close { background: none; border: none; color: #fff; font-size: 16px; cursor: pointer; }
-    #te-ai-msgs { flex: 1; overflow-y: auto; padding: 10px; background: #f2f6fa; }
-    .te-ai-msg { margin: 6px 0; max-width: 85%; padding: 8px 11px; border-radius: 12px;
-        white-space: pre-wrap; word-wrap: break-word; line-height: 1.45; }
-    .te-ai-bot { background: #fff; border: 1px solid #dde5ec; border-bottom-left-radius: 3px; }
-    .te-ai-user { background: #4D97FF; color: #fff; margin-left: auto; border-bottom-right-radius: 3px; }
-    #te-ai-chips { padding: 4px 10px; display: flex; flex-wrap: wrap; gap: 6px; background: #f2f6fa; }
-    .te-ai-chip { background: #fff; border: 1px solid #4D97FF; color: #4D97FF; border-radius: 20px;
-        padding: 4px 10px; font-size: 12px; cursor: pointer; }
-    .te-ai-chip:hover { background: #4D97FF; color: #fff; }
-    #te-ai-inputrow { display: flex; border-top: 1px solid #e2e8ee; background: #fff; }
-    #te-ai-input { flex: 1; border: none; outline: none; padding: 11px 12px; font-size: 13px; }
-    #te-ai-send { border: none; background: none; color: #4D97FF; font-size: 18px;
-        padding: 0 14px; cursor: pointer; }
+    #te-ai-brand { display: flex; align-items: center; gap: 10px; }
+    #te-ai-avatar { width: 38px; height: 38px; border-radius: 13px; background: rgba(255,255,255,.2);
+        display: grid; place-items: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+    #te-ai-head small { font-weight: 500; opacity: .92; display: flex; align-items: center; gap: 5px; font-size: 11px; margin-top: 2px; }
+    #te-ai-head small:before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #baffd8;
+        box-shadow: 0 0 8px rgba(186,255,216,.8); }
+    #te-ai-head small.offline:before { background: #d5e0e7; box-shadow: none; }
+    #te-ai-head-actions { display: flex; align-items: center; gap: 4px; }
+    #te-ai-settings, #te-ai-close { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.1);
+        border: none; color: #fff; font-size: 16px; cursor: pointer; }
+    #te-ai-settings:hover, #te-ai-close:hover { background: rgba(255,255,255,.22); }
+    #te-ai-keybox { display: none; padding: 12px 14px; background: #f2fbf8; border-bottom: 1px solid #d7eee7; }
+    #te-ai-keybox.open { display: block; }
+    #te-ai-keybox p { margin: 0 0 7px; color: #46655e; font-size: 11px; line-height: 1.4; }
+    #te-ai-keyrow, #te-ai-key-actions { display: flex; gap: 6px; }
+    #te-ai-key-actions { margin-top: 7px; justify-content: flex-end; }
+    #te-ai-key { flex: 1; min-width: 0; border: 1px solid #afd9cd; border-radius: 10px; padding: 8px 10px; outline: none; }
+    #te-ai-key:focus { border-color: #28ae86; box-shadow: 0 0 0 3px rgba(40,174,134,.12); }
+    #te-ai-key-save, #te-ai-offline, #te-ai-forget { border: 0; border-radius: 10px; padding: 8px 10px; cursor: pointer; font-weight: 700; }
+    #te-ai-key-save { color: #fff; background: #00a876; }
+    #te-ai-offline, #te-ai-forget { color: #08765a; background: #d9f4eb; }
+    #te-ai-tour {
+        margin: 10px 12px 2px; padding: 10px 13px; border: 0; border-radius: 13px;
+        background: linear-gradient(120deg, #fff5bf, #ddfff2); color: #126b5a;
+        box-shadow: inset 0 0 0 1px rgba(0,185,130,.2); cursor: pointer;
+        font-weight: 700; text-align: left;
+    }
+    #te-ai-tour:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,185,130,.16); }
+    #te-ai-msgs { flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+        background: radial-gradient(circle at 100% 0, #e8f3ff 0, transparent 38%), #f5f8fb; }
+    #te-ai-msgs::-webkit-scrollbar { width: 6px; }
+    #te-ai-msgs::-webkit-scrollbar-thumb { background: #c5d4df; border-radius: 8px; }
+    .te-ai-msg { position: relative; box-sizing: border-box; margin: 8px 0; max-width: 82%; padding: 11px 14px;
+        border-radius: 18px; white-space: pre-wrap; word-wrap: break-word; line-height: 1.5;
+        box-shadow: 0 3px 10px rgba(27,62,86,.08); }
+    .te-ai-bot { background: rgba(255,255,255,.96); border: 1px solid #dce8ef; border-bottom-left-radius: 6px; margin-left: 32px; }
+    .te-ai-bot:before { content: '🦗'; position: absolute; left: -34px; top: 0; width: 27px; height: 27px;
+        display: grid; place-items: center; border-radius: 9px; background: #dff8ef; font-size: 15px; }
+    .te-ai-thinking { color: #58717f; min-width: 190px; }
+    .te-ai-thinking-label { display: inline-block; transition: opacity .18s ease; }
+    .te-ai-thinking-dots { display: inline-flex; gap: 3px; margin-left: 6px; vertical-align: middle; }
+    .te-ai-thinking-dots i { width: 5px; height: 5px; border-radius: 50%; background: #42a58c;
+        animation: te-ai-dot 1.15s infinite ease-in-out; }
+    .te-ai-thinking-dots i:nth-child(2) { animation-delay: .16s; }
+    .te-ai-thinking-dots i:nth-child(3) { animation-delay: .32s; }
+    @keyframes te-ai-dot { 0%, 70%, 100% { transform: translateY(0); opacity: .35; } 35% { transform: translateY(-4px); opacity: 1; } }
+    .te-ai-user { background: linear-gradient(135deg, #3d8dff, #6476ee); color: #fff; margin-left: auto;
+        border-bottom-right-radius: 6px; box-shadow: 0 5px 14px rgba(61,141,255,.22); }
+    #te-ai-chips { padding: 4px 14px 10px; display: flex; flex-wrap: wrap; gap: 6px; background: #f5f8fb; }
+    .te-ai-chip { background: #fff; border: 1px solid #7eaefa; color: #3979d8; border-radius: 20px;
+        padding: 6px 11px; font-size: 12px; cursor: pointer; transition: all .15s ease; }
+    .te-ai-chip:hover { background: #4D97FF; color: #fff; transform: translateY(-1px); }
+    #te-ai-inputrow { display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+        border-top: 1px solid #e2eaf0; background: #fff; }
+    #te-ai-input { flex: 1; min-width: 0; border: 1px solid #dfe8ee; outline: none; padding: 10px 13px;
+        font-size: 14px; border-radius: 14px; background: #f7f9fb; }
+    #te-ai-input:focus { border-color: #68a8ff; background: #fff; box-shadow: 0 0 0 3px rgba(77,151,255,.1); }
+    #te-ai-send { width: 40px; height: 40px; flex: 0 0 40px; border: none; border-radius: 13px;
+        background: linear-gradient(135deg, #00b982, #4D97FF); color: #fff; font-size: 18px;
+        cursor: pointer; box-shadow: 0 5px 12px rgba(44,137,201,.24); }
+    #te-ai-send:disabled { opacity: .45; cursor: wait; box-shadow: none; }
+    @media (max-width: 520px) {
+        #te-ai-panel { right: 8px; bottom: 82px; width: calc(100vw - 16px); height: calc(100vh - 94px); }
+    }
+    #te-coach { position: fixed; inset: 0; z-index: 2147483002; pointer-events: none; }
+    #te-coach-focus {
+        position: fixed; border: 4px solid #ffd84d; border-radius: 14px;
+        box-shadow: 0 0 0 9999px rgba(10,30,45,.58), 0 0 22px rgba(255,216,77,.9);
+        transition: all .25s ease; pointer-events: none;
+    }
+    #te-coach-focus:after {
+        content: ''; position: absolute; inset: -10px; border: 3px solid rgba(255,216,77,.45);
+        border-radius: 18px; animation: te-coach-pulse 1.4s ease-out infinite;
+    }
+    @keyframes te-coach-pulse { from { transform: scale(.98); opacity: 1; } to { transform: scale(1.06); opacity: 0; } }
+    #te-coach-card {
+        position: fixed; right: 22px; bottom: 22px; width: 330px; box-sizing: border-box;
+        padding: 16px; border-radius: 18px; background: #fff; color: #18384a;
+        box-shadow: 0 12px 36px rgba(0,0,0,.32); pointer-events: auto;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    #te-coach-title { color: #087d66; font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    #te-coach-text { font-size: 14px; line-height: 1.5; }
+    #te-coach-progress { color: #7a8d99; font-size: 12px; margin-top: 12px; }
+    #te-coach-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .te-coach-btn { border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 700; }
+    #te-coach-skip { color: #71808a; background: transparent; margin-right: auto; }
+    #te-coach-back { color: #087d66; background: #e9f8f3; }
+    #te-coach-next { color: #fff; background: linear-gradient(135deg, #00B982, #4D97FF); }
     `;
+
+    function exactTextTarget (labels) {
+        const wanted = Array.isArray(labels) ? labels : [labels];
+        const leaf = Array.from(document.querySelectorAll('button, span, div')).find(el =>
+            !el.children.length && wanted.indexOf(el.textContent.trim()) !== -1
+        );
+        return leaf && (leaf.closest('button') || leaf.parentElement || leaf);
+    }
+
+    const projectTutorialSteps = [
+        {
+            title: '1. Chọn bo mạch',
+            text: 'Bấm vào đây và chọn ThingBot để app biết em đang dùng bộ KIT nào.',
+            target: () => exactTextTarget(['Chưa chọn bo mạch', 'ThingBot'])
+        },
+        {
+            title: '2. Chọn nhóm khối',
+            text: 'Các khối lệnh nằm ở cột này. Em thử chọn Chuyển động, Điều khiển hoặc nhóm cảm biến nhé.',
+            target: () => document.querySelector('.scratchCategoryMenu')
+        },
+        {
+            title: '3. Lắp chương trình',
+            text: 'Kéo khối lệnh vào vùng giữa rồi ghép chúng lại như những mảnh xếp hình.',
+            target: () => document.querySelector('.blocklyWorkspace') || document.querySelector('.blocklySvg')
+        },
+        {
+            title: '4. Thêm cảm biến',
+            text: 'Cần cảm biến mới? Bấm nút này để mở kho cảm biến và chọn đúng loại em đang có.',
+            target: () => document.querySelector('button[title="Thêm cảm biến"]') || exactTextTarget('Thêm cảm biến')
+        },
+        {
+            title: '5. Chạy thử',
+            text: 'Khi ghép xong, kết nối bo mạch rồi bấm Nạp vào bo mạch. Chú Dế sẽ ở đây nếu em cần giúp!',
+            target: () => exactTextTarget('Nạp vào bo mạch')
+        }
+    ];
+
+    function tutorialTarget (target) {
+        if (target && target.indexOf('category:') === 0) {
+            const id = target.slice('category:'.length);
+            return document.querySelector('.scratchCategoryId-' + id) ||
+                document.querySelector('.scratchCategoryMenu');
+        }
+        if (target === 'toolbox') return document.querySelector('.scratchCategoryMenu');
+        if (target === 'workspace') {
+            return document.querySelector('.blocklyWorkspace') || document.querySelector('.blocklySvg');
+        }
+        if (target === 'upload') return exactTextTarget('Nạp vào bo mạch');
+        return null;
+    }
+
+    function getTutorialSteps () {
+        const context = window.DeLessonMode && window.DeLessonMode.layNguCanh ?
+            window.DeLessonMode.layNguCanh() : null;
+        if (context && context.mode === 'kit' && context.tutorial && context.tutorial.length) {
+            return context.tutorial.map((step, index) => ({
+                title: (index + 1) + '. ' + step.title,
+                text: step.text,
+                target: () => tutorialTarget(step.target)
+            }));
+        }
+        return projectTutorialSteps;
+    }
+
+    function startTutorial (startAt) {
+        const old = document.getElementById('te-coach');
+        if (old) {
+            if (old.teClose) old.teClose();
+            else old.remove();
+        }
+
+        const panel = document.getElementById('te-ai-panel');
+        if (panel) panel.classList.remove('open');
+
+        const coach = document.createElement('div');
+        coach.id = 'te-coach';
+        coach.innerHTML =
+            '<div id="te-coach-focus"></div>' +
+            '<div id="te-coach-card">' +
+            '<div id="te-coach-title"></div><div id="te-coach-text"></div>' +
+            '<div id="te-coach-progress"></div>' +
+            '<div id="te-coach-actions"><button class="te-coach-btn" id="te-coach-skip">Bỏ qua</button>' +
+            '<button class="te-coach-btn" id="te-coach-back">← Trước</button>' +
+            '<button class="te-coach-btn" id="te-coach-next">Tiếp →</button></div></div>';
+        document.body.appendChild(coach);
+
+        const focus = coach.querySelector('#te-coach-focus');
+        const title = coach.querySelector('#te-coach-title');
+        const text = coach.querySelector('#te-coach-text');
+        const progress = coach.querySelector('#te-coach-progress');
+        const back = coach.querySelector('#te-coach-back');
+        const next = coach.querySelector('#te-coach-next');
+        const tutorialSteps = getTutorialSteps();
+        let index = Math.max(0, Math.min(Number(startAt) || 0, tutorialSteps.length - 1));
+
+        function close () {
+            window.removeEventListener('resize', place);
+            document.removeEventListener('keydown', onKey);
+            coach.remove();
+        }
+        coach.teClose = close;
+
+        function place () {
+            const step = tutorialSteps[index];
+            const target = step.target();
+            let rect = target && target.getBoundingClientRect();
+            if (!rect || !rect.width || !rect.height) {
+                rect = {left: window.innerWidth * .2, top: window.innerHeight * .2,
+                    width: window.innerWidth * .55, height: window.innerHeight * .55};
+            }
+            const pad = 7;
+            focus.style.left = Math.max(5, rect.left - pad) + 'px';
+            focus.style.top = Math.max(5, rect.top - pad) + 'px';
+            focus.style.width = Math.max(24, Math.min(window.innerWidth - rect.left - 12, rect.width + pad * 2)) + 'px';
+            focus.style.height = Math.max(24, Math.min(window.innerHeight - rect.top - 12, rect.height + pad * 2)) + 'px';
+        }
+
+        function show () {
+            const step = tutorialSteps[index];
+            title.textContent = '🦗 ' + step.title;
+            text.textContent = step.text;
+            progress.textContent = 'Bước ' + (index + 1) + ' / ' + tutorialSteps.length;
+            back.style.visibility = index ? 'visible' : 'hidden';
+            next.textContent = index === tutorialSteps.length - 1 ? 'Xong ✓' : 'Tiếp →';
+            place();
+        }
+
+        function onKey (event) {
+            if (event.key === 'Escape') close();
+            if (event.key === 'ArrowRight') next.click();
+            if (event.key === 'ArrowLeft' && index) back.click();
+        }
+
+        coach.querySelector('#te-coach-skip').onclick = close;
+        back.onclick = () => { if (index) { index -= 1; show(); } };
+        next.onclick = () => {
+            if (index === tutorialSteps.length - 1) return close();
+            index += 1;
+            show();
+        };
+        window.addEventListener('resize', place);
+        document.addEventListener('keydown', onKey);
+        show();
+    }
 
     function buildUI () {
         const style = document.createElement('style');
@@ -292,25 +598,44 @@
 
         const fab = document.createElement('button');
         fab.id = 'te-ai-fab';
-        fab.title = 'Trợ lý AI ThingEdu';
-        fab.textContent = '🤖';
+        fab.title = 'Hỏi chú Dế';
+        fab.textContent = '🦗';
         document.body.appendChild(fab);
 
         const panel = document.createElement('div');
         panel.id = 'te-ai-panel';
         panel.innerHTML =
-            '<div id="te-ai-head"><div>Trợ lý ThingEdu 🤖<small>Bản offline — sẽ thông minh hơn khi có API</small></div>' +
-            '<button id="te-ai-close">✕</button></div>' +
+            '<div id="te-ai-head"><div id="te-ai-brand"><span id="te-ai-avatar">🦗</span><div>Chú Dế' +
+            '<small id="te-ai-status">Cùng em tự tìm câu trả lời</small></div></div>' +
+            '<div id="te-ai-head-actions"><button id="te-ai-settings" title="Cài đặt Chú Dế">⚙</button>' +
+            '<button id="te-ai-close">✕</button></div></div>' +
+            '<div id="te-ai-keybox"><p><strong>Kết nối AI</strong> · Key được Windows mã hóa trên máy demo. Chú Dế nhớ 8 lượt chat gần nhất trên máy.</p>' +
+            '<div id="te-ai-keyrow"><input id="te-ai-key" type="password" placeholder="Dán API key" />' +
+            '<button id="te-ai-key-save">Kết nối</button></div>' +
+            '<div id="te-ai-key-actions"><button id="te-ai-offline">Dùng offline</button>' +
+            '<button id="te-ai-forget">Xóa trí nhớ chat</button></div></div>' +
+            '<button id="te-ai-tour">🧭 Chỉ em chỗ lập trình</button>' +
             '<div id="te-ai-msgs"></div>' +
             '<div id="te-ai-chips"></div>' +
-            '<div id="te-ai-inputrow"><input id="te-ai-input" placeholder="Hỏi mình điều gì đó..." />' +
+            '<div id="te-ai-inputrow"><input id="te-ai-input" placeholder="Em đang nghĩ gì?" />' +
             '<button id="te-ai-send">➤</button></div>';
         document.body.appendChild(panel);
 
         const msgs = panel.querySelector('#te-ai-msgs');
         const chipsBox = panel.querySelector('#te-ai-chips');
         const input = panel.querySelector('#te-ai-input');
-        const history = [];
+        const sendButton = panel.querySelector('#te-ai-send');
+        const status = panel.querySelector('#te-ai-status');
+        const keyBox = panel.querySelector('#te-ai-keybox');
+        const keyInput = panel.querySelector('#te-ai-key');
+        let history = [];
+        let memoryKey = '';
+
+        function updateStatus (message) {
+            const online = config.mode === 'api' && !!config.api.apiKey;
+            status.textContent = message || (online ? 'Chú Dế online' : 'Chế độ offline · bấm ⚙ để kết nối');
+            status.classList.toggle('offline', !online);
+        }
 
         function addMsg (text, who) {
             const div = document.createElement('div');
@@ -318,6 +643,66 @@
             div.textContent = text;
             msgs.appendChild(div);
             msgs.scrollTop = msgs.scrollHeight;
+            return div;
+        }
+
+        function currentMemoryKey () {
+            try {
+                const progress = JSON.parse(localStorage.getItem('de_base_kit_tien_do') || '{}');
+                return MEMORY_PREFIX + normalize(progress.tenHocSinh || 'demo').slice(0, 40);
+            } catch (e) {
+                return MEMORY_PREFIX + 'demo';
+            }
+        }
+
+        function saveMemory () {
+            try {
+                localStorage.setItem(memoryKey || currentMemoryKey(), JSON.stringify(history.slice(-16)));
+            } catch (e) { /* chat vẫn chạy nếu trình duyệt chặn lưu */ }
+        }
+
+        function loadMemory () {
+            const nextKey = currentMemoryKey();
+            if (memoryKey === nextKey) return;
+            memoryKey = nextKey;
+            try {
+                const saved = JSON.parse(localStorage.getItem(memoryKey) || '[]');
+                history = Array.isArray(saved) ? saved.filter(message =>
+                    message && (message.role === 'user' || message.role === 'assistant') &&
+                    typeof message.content === 'string'
+                ).slice(-16) : [];
+            } catch (e) {
+                history = [];
+            }
+            msgs.innerHTML = '';
+            history.forEach(message => addMsg(message.content, message.role === 'user' ? 'user' : 'bot'));
+        }
+
+        function addThinking () {
+            const phrases = [
+                'Đang hiểu câu hỏi của em',
+                'Đang xem bài em học',
+                'Đang tìm một gợi ý vừa đủ',
+                'Sắp có câu hỏi cho em rồi'
+            ];
+            const div = addMsg('', 'bot');
+            div.classList.add('te-ai-thinking');
+            div.innerHTML = '<span class="te-ai-thinking-label"></span>' +
+                '<span class="te-ai-thinking-dots"><i></i><i></i><i></i></span>';
+            const label = div.querySelector('.te-ai-thinking-label');
+            let index = 0;
+            label.textContent = phrases[index];
+            const timer = setInterval(() => {
+                index = Math.min(index + 1, phrases.length - 1);
+                label.textContent = phrases[index];
+            }, 1800);
+            return {
+                finish: text => {
+                    clearInterval(timer);
+                    div.classList.remove('te-ai-thinking');
+                    div.textContent = text;
+                }
+            };
         }
 
         function setChips (labels) {
@@ -332,19 +717,38 @@
         }
 
         async function send (text) {
+            loadMemory();
             const q = (text || input.value).trim();
             if (!q) return;
             input.value = '';
             addMsg(q, 'user');
             history.push({role: 'user', content: q});
-            const reply = await ask(q, history.slice(0, -1));
-            addMsg(reply.text, 'bot');
-            history.push({role: 'assistant', content: reply.text});
-            setChips(reply.chips);
+            saveMemory();
+            const thinking = addThinking();
+            const thinkingStarted = Date.now();
+            input.disabled = true;
+            sendButton.disabled = true;
+            try {
+                const reply = await ask(q, history.slice(0, -1));
+                const remaining = Math.max(0, 2200 - (Date.now() - thinkingStarted));
+                if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
+                thinking.finish(reply.text);
+                history.push({role: 'assistant', content: reply.text});
+                saveMemory();
+                setChips(reply.chips);
+                updateStatus(reply.source === 'gemini' ? 'Chú Dế online' :
+                    (config.mode === 'api' ? 'Mạng chậm · đang dùng offline' : 'Chế độ offline'));
+            } finally {
+                input.disabled = false;
+                sendButton.disabled = false;
+                input.focus();
+                msgs.scrollTop = msgs.scrollHeight;
+            }
         }
 
         fab.onclick = () => {
             panel.classList.toggle('open');
+            if (panel.classList.contains('open')) loadMemory();
             if (panel.classList.contains('open') && !msgs.childElementCount) {
                 const hello = askLocal('xin chào');
                 addMsg(hello.text, 'bot');
@@ -352,13 +756,55 @@
             }
         };
         panel.querySelector('#te-ai-close').onclick = () => panel.classList.remove('open');
-        panel.querySelector('#te-ai-send').onclick = () => send();
+        panel.querySelector('#te-ai-settings').onclick = () => keyBox.classList.toggle('open');
+        panel.querySelector('#te-ai-key-save').onclick = async () => {
+            const key = keyInput.value.trim();
+            if (!key) return updateStatus('Hãy dán API key trước');
+            updateStatus('Đang lưu kết nối an toàn…');
+            try {
+                await saveApiKey(key);
+                config.api.apiKey = key;
+                config.mode = 'api';
+                keyInput.value = '';
+                keyBox.classList.remove('open');
+                updateStatus();
+            } catch (e) {
+                updateStatus('Không lưu được key · thử lại');
+            }
+        };
+        panel.querySelector('#te-ai-offline').onclick = async () => {
+            await clearApiKey();
+            config.api.apiKey = '';
+            config.mode = 'local';
+            keyInput.value = '';
+            keyBox.classList.remove('open');
+            updateStatus();
+        };
+        panel.querySelector('#te-ai-forget').onclick = () => {
+            loadMemory();
+            localStorage.removeItem(memoryKey);
+            history = [];
+            msgs.innerHTML = '';
+            const hello = askLocal('xin chào');
+            addMsg(hello.text, 'bot');
+            setChips(hello.chips);
+        };
+        panel.querySelector('#te-ai-tour').onclick = startTutorial;
+        sendButton.onclick = () => send();
         input.addEventListener('keydown', e => {
             if (e.key === 'Enter') send();
         });
+        updateStatus();
+        loadSavedApiKey().then(key => {
+            if (key) {
+                config.api.apiKey = key;
+                config.mode = 'api';
+            }
+            updateStatus();
+        });
     }
 
-    window.ThingEduAI = {config: config, ask: ask};
+    window.ThingEduAI = {config: config, ask: ask, askWithImage: askWithImage, startTutorial: startTutorial};
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', buildUI);

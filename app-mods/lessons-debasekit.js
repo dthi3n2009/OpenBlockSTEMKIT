@@ -5,7 +5,6 @@
  * Mỗi bài:
  *   coLapTrinh : bài này có phần kéo thả khối lệnh không (Bài 1, 2 thì không)
  *   khoiLenh   : những nhóm khối được mở ở bài này (mở dần, tránh ngợp)
- *   video      : để trống '' khi chưa quay -> giao diện hiện ô "đang chuẩn bị"
  *   hoiAI      : câu hỏi mẫu lấy nguyên từ giáo trình, bấm là gửi cho trợ lý
  */
 const LESSONS = [
@@ -15,9 +14,9 @@ const LESSONS = [
         phuDe: 'Nhìn ra vấn đề thật của cây trước khi nghĩ tới công nghệ.',
         thoiLuong: '60–90 phút',
         hoatDongDe: 'Quan sát thiên nhiên',
+        video: 'media/bai-1-quan-sat-vuon.mp4',
         coLapTrinh: false,
         khoiLenh: [],
-        video: '',
         moDau: 'Chào em! Người làm kỹ thuật giỏi không bắt đầu bằng việc cắm dây — họ bắt đầu bằng việc nhìn thật kỹ để tìm ra vấn đề đáng giải quyết. Hôm nay em tập đúng điều đó.',
         mucTieu: [
             'Biết cách quan sát cây cối như một người làm khoa học',
@@ -26,7 +25,6 @@ const LESSONS = [
         ],
         chuanBi: 'Sổ tay Maker, bút, điện thoại chụp ảnh nếu có. Chưa cần linh kiện.',
         cacBuoc: [
-            {ten: 'Xem video mở đầu', noiDung: 'Vài khu vườn đang gặp vấn đề, và vì sao nên quan sát trước khi bắt tay làm.'},
             {ten: 'Ra quan sát thật', noiDung: 'Chọn 2–3 cây, ghi lại ba thứ: sự kiện (chuyện gì đang xảy ra), bối cảnh (ở đâu, lúc nào), tần suất (thỉnh thoảng hay thường xuyên).'},
             {ten: 'Tách "thấy" và "đoán"', noiDung: 'Gạch chân câu em nhìn thấy thật, khoanh tròn câu em đoán. "Lá vàng" là thấy, "chắc do thiếu nước" là đoán. Đây là kỹ năng quan trọng nhất của bài.'},
             {ten: 'Đặt câu hỏi kiểm tra được', noiDung: 'Ví dụ: "Có phải cây ở góc này héo vì đất khô nhanh hơn không?"'},
@@ -51,9 +49,9 @@ const LESSONS = [
         phuDe: 'Sai trên bìa carton rẻ hơn sai trên mạch điện.',
         thoiLuong: '60–90 phút',
         hoatDongDe: 'Mô phỏng & thí nghiệm · DIY loại 1 (không điện)',
+        video: 'media/bai-2-mo-hinh-vuon-mini.mp4',
         coLapTrinh: false,
         khoiLenh: [],
-        video: '',
         moDau: 'Trước khi tốn linh kiện, mình thử ý tưởng bằng đồ rẻ đã. Mô hình bìa carton sai thoải mái, hỏng cũng không tiếc.',
         mucTieu: [
             'Biến câu hỏi ở Bài 1 thành mô hình để kiểm tra',
@@ -88,7 +86,11 @@ const LESSONS = [
         hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
         coLapTrinh: true,
         khoiLenh: ['soilMoisture', 'arduinoThingBotC3'],
-        video: '',
+        tutorial: [
+            {title: 'Đọc độ ẩm đất', text: 'Mở nhóm Độ ẩm đất. Tìm khối đọc giá trị cảm biến.', target: 'category:soilMoisture'},
+            {title: 'Ghép điều kiện', text: 'Kéo khối vào vùng giữa và thử so sánh số đo với một ngưỡng.', target: 'workspace'},
+            {title: 'Chạy thử', text: 'Cắm cảm biến, kết nối ThingBot rồi nạp chương trình để xem đất khô và ẩm khác nhau thế nào.', target: 'upload'}
+        ],
         moDau: 'Hôm nay mạch của em sẽ "cảm nhận" được đất khô hay ẩm. Làm trên bàn thôi, chưa lắp vào vườn vội.',
         mucTieu: [
             'Hiểu "đầu vào" — cách mạch thu nhận thông tin từ cảm biến',
@@ -124,7 +126,12 @@ const LESSONS = [
         hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
         coLapTrinh: true,
         khoiLenh: ['dht', 'ultrasonic', 'oled', 'soilMoisture', 'arduinoThingBotC3'],
-        video: '',
+        tutorial: [
+            {title: 'Đọc nhiệt độ và độ ẩm', text: 'Bắt đầu ở nhóm DHT để lấy hai số đo đầu tiên của môi trường.', target: 'category:dht'},
+            {title: 'Thêm các giác quan', text: 'Các nhóm siêu âm, OLED và độ ẩm đất đã được mở sẵn cho bài này.', target: 'toolbox'},
+            {title: 'Ghép trạm đo', text: 'Kéo các khối vào vùng giữa, đọc từng cảm biến trước khi ghép thành chương trình lớn.', target: 'workspace'},
+            {title: 'Chạy thử', text: 'Kết nối ThingBot và nạp chương trình để kiểm tra từng số đo.', target: 'upload'}
+        ],
         moDau: 'Mỗi con cảm biến là một giác quan cho vườn. Hôm nay vườn của em có thêm mắt, mũi và tai.',
         mucTieu: [
             'Đọc được DHT11 (nhiệt độ, độ ẩm), cảm biến ánh sáng và chất lượng không khí',
@@ -160,7 +167,11 @@ const LESSONS = [
         hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
         coLapTrinh: true,
         khoiLenh: ['passiveBuzzer', 'arduinoThingBotC3'],
-        video: '',
+        tutorial: [
+            {title: 'Thử tín hiệu đầu ra', text: 'Mở nhóm Còi thụ động và chọn một âm báo ngắn để thử trước.', target: 'category:passiveBuzzer'},
+            {title: 'Ghép lệnh an toàn', text: 'Trong vùng giữa, đặt thời gian chạy ngắn và luôn có lệnh tắt đầu ra.', target: 'workspace'},
+            {title: 'Chạy thử', text: 'Kiểm tra dây và nguồn riêng của tải trước khi nạp chương trình.', target: 'upload'}
+        ],
         moDau: 'Bơm, quạt, đèn là những "tải lớn" — không nối thẳng vào mạch được. Relay chính là công tắc điện tử giúp mạch nhỏ điều khiển đồ lớn an toàn.',
         mucTieu: [
             'Hiểu relay là công tắc điện tử cho tải lớn',
@@ -196,7 +207,11 @@ const LESSONS = [
         hoatDongDe: 'Vận hành Vườn IoT → Dự án xanh · DIY loại 2 (tích hợp)',
         coLapTrinh: true,
         khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'passiveBuzzer', 'arduinoThingBotC3'],
-        video: '',
+        tutorial: [
+            {title: 'Bắt đầu từ đất', text: 'Mở nhóm Độ ẩm đất. Đây là tín hiệu đầu tiên để khu vườn quyết định có cần tưới.', target: 'category:soilMoisture'},
+            {title: 'Ghép chương trình tổng', text: 'Trong vùng giữa, ghép theo thứ tự: đọc cảm biến → quyết định → điều khiển → hiển thị.', target: 'workspace'},
+            {title: 'Kiểm tra từng phần', text: 'Nạp chương trình và thử từng cụm riêng trước khi cho cả khu vườn chạy cùng lúc.', target: 'upload'}
+        ],
         moDau: 'Từng cụm em đã hiểu rồi. Hôm nay ráp tất cả thành một khu vườn thông minh chạy được thật.',
         mucTieu: [
             'Gắn toàn bộ cảm biến và đầu ra vào vườn tái chế',
@@ -233,7 +248,11 @@ const LESSONS = [
         hoatDongDe: 'Dự án xanh riêng & Trình bày · Gộp cả hai loại DIY',
         coLapTrinh: true,
         khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'passiveBuzzer', 'arduinoThingBotC3'],
-        video: '',
+        tutorial: [
+            {title: 'Chọn chức năng em muốn đổi', text: 'Các khối của cả khu vườn đã sẵn sàng. Em chọn một giác quan hoặc một hành động để cải tiến.', target: 'toolbox'},
+            {title: 'Tạo phiên bản của em', text: 'Ghép ý tưởng trong vùng giữa rồi đặt một tiêu chí đo được để biết nó có thành công không.', target: 'workspace'},
+            {title: 'Test và cải tiến', text: 'Nạp chương trình, thử ít nhất hai lượt và ghi lại một điều em đã thay đổi.', target: 'upload'}
+        ],
         moDau: 'Khu vườn giờ là của em. Quay lại vấn đề em chọn ở Bài 1 và thêm một chức năng để giải nó.',
         mucTieu: [
             'Tự thiết kế thêm hoặc đổi một chức năng cho vườn',

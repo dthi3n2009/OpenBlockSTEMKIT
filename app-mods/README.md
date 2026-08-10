@@ -11,17 +11,18 @@ Thư mục này lưu các file được đưa vào `app.asar` của bản cài (
 
 ## Các file mod
 
-### 1. ai-assistant.js — Trợ lý AI chatbot (bản offline)
+### 1. ai-assistant.js — Trợ lý AI chatbot hai lớp
 Nút 🤖 góc dưới phải, panel chat tiếng Việt: hướng dẫn cảm biến/motor/servo,
 gợi ý ý tưởng dự án, xử lý lỗi kết nối. Được nạp bằng thẻ `<script src="ai-assistant.js">`
 thêm vào cuối `index.html` (sau renderer.js).
 
-**Bật chế độ API sau này:** sửa `config` ở đầu file:
-```js
-mode: 'api',
-api: { endpoint: 'https://<proxy-cua-ban>/chat', apiKey: '...', model: '...' }
-```
-Khuyến nghị dựng server proxy giữ API key. Khi API lỗi/mất mạng tự rơi về kiến thức offline.
+Lớp 1 dùng kiến thức offline. Lớp 2 thử nghiệm dùng Gemini 3.6 Flash: mở Chú Dế,
+bấm ⚙ và dán API key. Key được Electron `safeStorage` mã hóa theo tài khoản Windows,
+app tự kết nối ở lần mở sau. Có thể truyền key bằng biến môi trường `GEMINI_API_KEY`.
+Khi API lỗi/mất mạng, Chú Dế tự rơi về lớp offline. Chat nhớ cục bộ 8 lượt gần nhất
+theo tài khoản demo và có nút xóa trí nhớ.
+
+Không nhúng key vào bản phát cho học sinh. Trước khi phát hành phải dựng server proxy giữ key.
 
 ### 2. userdata-guard.js — Vá bug treo "OpenBlock is loading..."
 **Bug gốc của bản build ThingEdu 1.0.2** (không liên quan chatbot): network service của
