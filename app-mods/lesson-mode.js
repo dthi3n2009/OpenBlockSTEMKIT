@@ -24,7 +24,7 @@
     const LUU_KEY = 'de_base_kit_tien_do';
     const MA_PHU_HUYNH_KEY = 'de_lab_ma_phu_huynh';
     const INTRO_VIDEO = 'media/gioi-thieu-khoa-hoc.mp4';
-    const UI_VERSION = 7;
+    const UI_VERSION = 8;
 
     let LESSONS = [];
     let baiDangMo = null;
@@ -119,8 +119,12 @@
         if (!td[soBai]) td[soBai] = {};
         if (!td[soBai].tuKiemTra) td[soBai].tuKiemTra = {};
         td[soBai].tuKiemTra[chiSo] = xong;
+        const bai = LESSONS.find(item => item.so === soBai);
+        const vuaXong = xong && bai && bai.tuKiemTra.every((_, i) => td[soBai].tuKiemTra[i]) && !td[soBai].daChucMung;
+        if (vuaXong) td[soBai].daChucMung = true;
         ghiTienDo(td);
         capNhatHuyHieu();
+        if (vuaXong) hienChucMung(soBai);
     }
 
     function baiDaXong (soBai) {
@@ -129,6 +133,25 @@
         const td = docTienDo()[soBai];
         if (!td || !td.tuKiemTra) return false;
         return bai.tuKiemTra.every((_, i) => td.tuKiemTra[i]);
+    }
+
+    function baiDaMo (soBai) {
+        const td = docTienDo();
+        if (!td.daXemGioiThieu) return false;
+        if (soBai === 1) return true;
+        return soBai <= 3 && baiDaXong(soBai - 1);
+    }
+
+    function hienChucMung (soBai) {
+        const cu = document.getElementById('de-chuc-mung');
+        if (cu) cu.remove();
+        const baiSau = soBai < 3 ? soBai + 1 : null;
+        const modal = document.createElement('div');
+        modal.id = 'de-chuc-mung';
+        modal.innerHTML = `<div class="de-chuc-mung-card"><div class="de-chuc-mung-icon">🎉</div><h2>Giỏi lắm, em xong Bài ${soBai}!</h2><p>${baiSau ? `Bài ${baiSau} đã mở. Mình đi tiếp nhé!` : 'Em đã hoàn thành chặng 1!'}</p><button id="de-chuc-next">${baiSau ? `Sang Bài ${baiSau} →` : 'Về hành trình học'}</button><button id="de-chuc-review">Xem lại bài này</button></div>`;
+        document.body.appendChild(modal);
+        document.getElementById('de-chuc-next').addEventListener('click', () => { modal.remove(); baiSau ? moBai(baiSau) : veDanhSach(); });
+        document.getElementById('de-chuc-review').addEventListener('click', () => { modal.remove(); moBai(soBai); });
     }
 
     function trangThaiHoc (bai) {
@@ -534,6 +557,8 @@
         #de-chuc-mung { position:fixed; inset:0; z-index:99999; display:grid; place-items:center; padding:20px; background:rgba(18,60,57,.42); font-family:"Segoe UI",system-ui,sans-serif; }
         .de-chuc-mung-card { width:min(440px,100%); padding:34px 28px; text-align:center; border-radius:25px; background:linear-gradient(145deg,#F4FFFB,#F4F8FF); box-shadow:0 28px 75px rgba(12,58,52,.28); }
         .de-chuc-mung-icon { font-size:64px; line-height:1; }
+        .de-chuc-mung-icon { animation:de-nhay .7s ease-out both; }
+        @keyframes de-nhay { 0% { transform:scale(.35) rotate(-12deg); } 65% { transform:scale(1.18) rotate(7deg); } 100% { transform:scale(1) rotate(0); } }
         .de-chuc-mung-card h2 { margin:12px 0 8px; color:${MAU.xanhDam}; font-size:27px; }
         .de-chuc-mung-card p { margin:0 0 20px; color:${MAU.chuNhat}; line-height:1.55; }
         .de-chuc-mung-card button { width:100%; border:0; border-radius:12px; padding:12px; margin-top:8px; font:700 15px inherit; cursor:pointer; }
@@ -955,16 +980,17 @@
                 </button>
                 ${LESSONS.map(b => {
                     const xong = baiDaXong(b.so);
+                    const mo = baiDaMo(b.so);
                     return `
-                    <button class="de-the ${xong ? 'xong' : ''}" data-bai="${b.so}">
-                        <div class="de-so">${xong ? '✓' : b.so}</div>
+                    <button class="de-the ${xong ? 'xong' : ''}" data-bai="${b.so}" ${mo ? '' : 'disabled'}>
+                        <div class="de-so">${xong ? '✓' : (mo ? b.so : '🔒')}</div>
                         <div class="de-the-noidung">
                             <h3>${esc(b.ten)}</h3>
                             <p>${esc(b.phuDe)}</p>
                             <span class="de-nhan ${b.coLapTrinh ? 'de-nhan-code' : 'de-nhan-tay'}">
                                 ${b.coLapTrinh ? 'Có lập trình' : 'Làm tay, chưa cần mạch'}
                             </span>
-                            ${xong ? '<span class="de-nhan de-nhan-xong">Đã xong</span>' : ''}
+                            ${xong ? '<span class="de-nhan de-nhan-xong">Đã xong</span>' : (!mo ? '<span class="de-nhan">Hoàn thành bài trước để mở</span>' : '')}
                         </div>
                     </button>`;
                 }).join('')}
@@ -984,6 +1010,7 @@
     /* ---------- màn hình một bài ---------- */
     function moBai (so) {
         if (!docTienDo().daXemGioiThieu) return moGioiThieu();
+        if (!baiDaMo(so)) return veDanhSach();
         const b = LESSONS.find(x => x.so === so);
         if (!b) return;
         baiDangMo = b;
@@ -1420,6 +1447,7 @@
         const td = docTienDo();
         if (!td[3]) td[3] = {};
         td[3].daHoanTat = true;
+        td[3].daChucMung = true;
         td[3].tuKiemTra = {0: true, 1: true, 2: true};
         delete td[3].workspaceXml;
         delete td[3].blockCount;
@@ -1436,7 +1464,7 @@
             <div class="de-chuc-mung-icon">🎉</div>
             <h2>Em đã pass Bài 3!</h2>
             <p>Em đã tạo được chương trình báo đất khô bằng cảm biến và còi. Rất ổn! Khối lệnh đã được dọn để sẵn sàng cho bài tiếp theo.</p>
-            <button id="de-chuc-next">Sang Bài 4 →</button>
+            <button id="de-chuc-next">Về hành trình học</button>
             <button id="de-chuc-more">Muốn tìm hiểu thêm bài này</button>
             <button id="de-chuc-review">Xem lại bài này</button>
         </div>`;
@@ -1444,7 +1472,7 @@
         document.getElementById('de-chuc-next').addEventListener('click', () => {
             modal.remove();
             moOverlay();
-            moBai(4);
+            veDanhSach();
         });
         document.getElementById('de-chuc-more').addEventListener('click', () => {
             modal.remove();
