@@ -22,8 +22,10 @@ $appJs  = Join-Path $res 'app'
 $asar   = Join-Path $res 'app.asar'
 $asarTat= Join-Path $res 'app.asar.tam-tat'
 
-$cacFile = @('ai-assistant.js', 'lesson-mode.js', 'lessons-debasekit.js', 'userdata-guard.js', 'gemini-key-store.js')
-$cacScript = @('ai-assistant.js', 'lesson-mode.js')
+$cacFile = @('ai-assistant.js', 'lesson-mode.js', 'lessons-debasekit.js', 'userdata-guard.js', 'gemini-key-store.js', 'destem-device-store.js', 'destem-api-client.js', 'destem-sync.js')
+# Chèn ngược thứ tự vì mỗi script mới đều được đặt ngay sau renderer.js.
+$cacScript = @('destem-sync.js', 'lesson-mode.js', 'ai-assistant.js')
+$scriptFirebaseCu = @('firebase-sync-config.js', 'firebase-sync.js')
 
 function Dung-App {
     Get-Process OpenBlockDesktop -ErrorAction SilentlyContinue | Stop-Process -Force
@@ -70,12 +72,21 @@ foreach ($f in $cacFile) {
     }
 }
 
+# Gỡ hẳn phần đồng bộ Firebase của các bản cài trước. Dữ liệu học cục bộ không bị đụng tới.
+foreach ($f in $scriptFirebaseCu) {
+    $fileCu = Join-Path $appJs $f
+    if (Test-Path $fileCu) {
+        Remove-Item $fileCu -Force
+        Write-Host "  go $f"
+    }
+}
+
 # Chép mọi video bài học đã có. Chưa có file thì app tự ẩn phần video của bài đó.
 $mediaNguon = Join-Path $modDir 'media'
 if (Test-Path $mediaNguon) {
     $mediaDir = Join-Path $appJs 'media'
     if (-not (Test-Path $mediaDir)) { New-Item -ItemType Directory -Path $mediaDir | Out-Null }
-    Get-ChildItem $mediaNguon -File -Filter '*.mp4' | ForEach-Object {
+    Get-ChildItem $mediaNguon -File | Where-Object { $_.Extension -in '.mp4', '.gif', '.png', '.jpg', '.jpeg', '.webp' } | ForEach-Object {
         Copy-Item $_.FullName (Join-Path $mediaDir $_.Name) -Force
         Write-Host "  chep video $($_.Name)"
     }
@@ -94,6 +105,14 @@ if ($KemGuiBuild) {
 $indexPath = Join-Path $appJs 'index.html'
 $html = Get-Content $indexPath -Raw -Encoding UTF8
 $daSua = $false
+foreach ($s in $scriptFirebaseCu) {
+    $htmlCu = $html
+    $html = $html -replace ('\s*<script src="' + [regex]::Escape($s) + '"></script>'), ''
+    if ($html -ne $htmlCu) {
+        $daSua = $true
+        Write-Host "  go the script: $s"
+    }
+}
 foreach ($s in $cacScript) {
     if ($html -notmatch [regex]::Escape($s)) {
         $html = $html -replace '(<script src="renderer\.js"></script>)', "`$1`n<script src=`"$s`"></script>"
@@ -126,6 +145,26 @@ if ($main -notmatch 'gemini-key-store') {
     Write-Host "  da noi kho API key ma hoa"
 } else {
     Write-Host "  main.js da co kho API key ma hoa"
+}
+
+# Luu ma thiet bi DeSTEM bang Windows DPAPI (khong de token trong localStorage)
+$main = Get-Content $mainPath -Raw -Encoding UTF8
+if ($main -notmatch 'destem-device-store') {
+    $main = 'require("./destem-device-store.js");' + "`n" + $main
+    [System.IO.File]::WriteAllText($mainPath, $main, (New-Object System.Text.UTF8Encoding $false))
+    Write-Host "  da noi kho ma thiet bi DeSTEM"
+} else {
+    Write-Host "  main.js da co kho ma thiet bi DeSTEM"
+}
+
+# Cầu nối mạng DeSTEM chạy ở main process để app file:// không bị CORS chặn.
+$main = Get-Content $mainPath -Raw -Encoding UTF8
+if ($main -notmatch 'destem-api-client') {
+    $main = 'require("./destem-api-client.js");' + "`n" + $main
+    [System.IO.File]::WriteAllText($mainPath, $main, (New-Object System.Text.UTF8Encoding $false))
+    Write-Host "  da noi cau noi mang DeSTEM"
+} else {
+    Write-Host "  main.js da co cau noi mang DeSTEM"
 }
 
 # 6. Tắt app.asar để Electron dùng thư mục app

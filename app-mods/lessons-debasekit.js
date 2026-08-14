@@ -1,284 +1,185 @@
-/* Dữ liệu 7 bài — Dế Base KIT · Khu vườn thông minh
- * Rút từ "Hồ sơ giáo trình v0.3 (24/07/2026)" và "Mẫu giáo trình tự học · Bài 1".
- * Giọng văn giữ đúng bản gốc: xưng "em", câu ngắn, động viên.
- *
- * Mỗi bài:
- *   coLapTrinh : bài này có phần kéo thả khối lệnh không (Bài 1, 2 thì không)
- *   khoiLenh   : những nhóm khối được mở ở bài này (mở dần, tránh ngợp)
- *   hoiAI      : câu hỏi mẫu lấy nguyên từ giáo trình, bấm là gửi cho trợ lý
+/* Giáo trình chính thức — Dế Base KIT · Khu vườn thông minh (9 bài).
+ * Nguồn: Giao_Trinh_Vuon_Thong_Minh_De_Lab.docx.
+ * Nhịp chung: Quan sát → Thử → Hiểu vì sao → Sai & sửa → Kể lại.
  */
 const LESSONS = [
     {
-        so: 1,
-        ten: 'Quan sát vườn, chọn vấn đề',
-        phuDe: 'Nhìn ra vấn đề thật của cây trước khi nghĩ tới công nghệ.',
-        thoiLuong: '60–90 phút',
-        hoatDongDe: 'Quan sát thiên nhiên',
-        video: 'media/bai-1-quan-sat-vuon.mp4',
-        coLapTrinh: false,
-        khoiLenh: [],
-        moDau: 'Chào em! Người làm kỹ thuật giỏi không bắt đầu bằng việc cắm dây — họ bắt đầu bằng việc nhìn thật kỹ để tìm ra vấn đề đáng giải quyết. Hôm nay em tập đúng điều đó.',
-        mucTieu: [
-            'Biết cách quan sát cây cối như một người làm khoa học',
-            'Phân biệt được "điều em thấy" với "điều em đoán"',
-            'Chọn được một vấn đề của riêng em để theo suốt cả khoá'
-        ],
-        chuanBi: 'Sổ tay Maker, bút, điện thoại chụp ảnh nếu có. Chưa cần linh kiện.',
+        so: 1, ten: 'Nhìn cây thật, tìm vấn đề thật',
+        phuDe: 'Chưa cần mạch: nhìn kỹ trước khi kết luận.', thoiLuong: '60–90 phút',
+        hoatDongDe: 'Chặng 1 · Tư duy khoa học', video: 'media/bai-1-quan-sat-vuon.mp4', coLapTrinh: false, khoiLenh: [],
+        moDau: 'Người làm kỹ thuật giỏi không bắt đầu bằng cắm dây. Họ nhìn thật kỹ để tìm một vấn đề đáng giải quyết.',
+        mucTieu: ['Ghi được điều nhìn thấy thay vì đoán vội', 'Biến quan sát thành câu hỏi đo được', 'Đặt tên một vấn đề sẽ theo em tới Bài 9'],
+        chuanBi: 'Sổ tay, bút, điện thoại chụp ảnh nếu có. Chưa cần linh kiện.',
         cacBuoc: [
-            {ten: 'Ra quan sát thật', noiDung: 'Chọn 2–3 cây, ghi lại ba thứ: sự kiện (chuyện gì đang xảy ra), bối cảnh (ở đâu, lúc nào), tần suất (thỉnh thoảng hay thường xuyên).'},
-            {ten: 'Tách "thấy" và "đoán"', noiDung: 'Gạch chân câu em nhìn thấy thật, khoanh tròn câu em đoán. "Lá vàng" là thấy, "chắc do thiếu nước" là đoán. Đây là kỹ năng quan trọng nhất của bài.'},
-            {ten: 'Đặt câu hỏi kiểm tra được', noiDung: 'Ví dụ: "Có phải cây ở góc này héo vì đất khô nhanh hơn không?"'},
-            {ten: 'Chọn vấn đề của em', noiDung: 'Chọn một vấn đề em thấy thú vị nhất. Vấn đề này sẽ đi theo em tới tận Bài 7.'}
+            {ten: 'Mười phút đứng yên', noiDung: 'Quan sát một cây hoặc góc vườn. Ghi ít nhất 5 dòng về lá, đất, ánh sáng, vị trí hay thay đổi em thấy.'},
+            {ten: 'Quan sát hay suy đoán?', noiDung: 'Tách câu “em thấy” khỏi câu “em đoán”. Ví dụ: “lá vàng” là thấy; “cây bị bệnh” là đoán.'},
+            {ten: 'Ba lần thu hẹp', noiDung: 'Thu hẹp điều em thấy thành một thứ có thể đo hoặc kiểm tra: ở đâu, lúc nào, thay đổi thế nào?'},
+            {ten: 'Đặt tên vấn đề', noiDung: 'Viết vấn đề bằng ba mảnh: chuyện gì xảy ra – ở đâu – khi nào. Đây là vấn đề dự án của em.'}
         ],
-        hoiAI: [
-            'Câu này là quan sát hay suy đoán: ...?',
-            'Làm sao biến điều em thấy thành câu hỏi kiểm tra được?'
-        ],
-        tuKiemTra: [
-            'Em đã ghi được ít nhất 3 điều quan sát chưa?',
-            'Em phân biệt được "thấy" và "đoán" chưa?',
-            'Em có một vấn đề kèm câu hỏi kiểm tra được chưa?'
-        ],
-        sanPham: 'Một trang Sổ tay có phần quan sát, vấn đề em chọn và câu hỏi của em.',
-        anToan: 'Ra ngoài nên đi cùng người thân, tránh nắng gắt. Không hái hay nếm cây lạ.',
-        chuanBiBaiSau: 'Gom sẵn chai nhựa, bìa carton, que kem cho Bài 2.'
+        hoiAI: ['Câu này là quan sát hay suy đoán: ...?', 'Giúp em biến điều em thấy thành một câu hỏi kiểm tra được.'],
+        tuKiemTra: ['Em đã ghi điều nhìn thấy thật chưa?', 'Em tách được quan sát và suy đoán chưa?', 'Em đặt được vấn đề có chuyện gì – ở đâu – khi nào chưa?'],
+        sanPham: 'Một trang Sổ tay: ảnh/ghi chép quan sát và một vấn đề rõ ràng.',
+        anToan: 'Đi cùng người lớn nếu ra ngoài; không hái hay nếm cây lạ.',
+        chuanBiBaiSau: 'Gom chai nhựa, bìa carton, que kem và hai cốc giống nhau cho Bài 2.'
     },
     {
-        so: 2,
-        ten: 'Mô phỏng tái chế',
-        phuDe: 'Sai trên bìa carton rẻ hơn sai trên mạch điện.',
-        thoiLuong: '60–90 phút',
-        hoatDongDe: 'Mô phỏng & thí nghiệm · DIY loại 1 (không điện)',
-        video: 'media/bai-2-mo-hinh-vuon-mini.mp4',
-        coLapTrinh: false,
-        khoiLenh: [],
-        moDau: 'Trước khi tốn linh kiện, mình thử ý tưởng bằng đồ rẻ đã. Mô hình bìa carton sai thoải mái, hỏng cũng không tiếc.',
-        mucTieu: [
-            'Biến câu hỏi ở Bài 1 thành mô hình để kiểm tra',
-            'Thử nguyên lý nước thấm – chảy – chứa',
-            'Thử hướng nắng và cách làm mái che'
-        ],
-        chuanBi: 'Chai nhựa, bìa carton, que kem, ống hút, nắp chai, băng keo, nước, đất hoặc xơ dừa.',
+        so: 2, ten: 'Mô phỏng tái chế',
+        phuDe: 'Thử ý tưởng nhỏ trước khi tin là nó đúng.', thoiLuong: '60–90 phút',
+        hoatDongDe: 'Chặng 1 · Thí nghiệm DIY', video: 'media/bai-2-mo-hinh-vuon-mini.mp4', coLapTrinh: false, khoiLenh: [],
+        moDau: 'Mô hình bìa carton cho phép em sai rẻ, sửa nhanh, rồi mới đưa công nghệ vào.',
+        mucTieu: ['Dựng mô hình để trả lời vấn đề Bài 1', 'Biết chỉ đổi một yếu tố trong thí nghiệm', 'Viết kết luận dựa trên điều đã quan sát'],
+        chuanBi: 'Chai nhựa, bìa carton, que kem, băng keo, đất hoặc xơ dừa, nước; hai cốc giống nhau.',
         cacBuoc: [
-            {ten: 'Vì sao phải mô phỏng', noiDung: 'Thử trên đồ tái chế trước để biết cái gì hiệu quả, rồi mới làm thật.'},
-            {ten: 'Làm mô hình vườn mini', noiDung: 'Dựng chậu, khung, mái bằng chai nhựa và bìa carton.'},
-            {ten: 'Thử nguyên lý', noiDung: 'Đổ nước xem thấm và chảy thế nào. Nghiêng mô hình đón nắng thử.'},
-            {ten: 'Rút kết luận', noiDung: 'Ghi bảng kết quả: cái gì giữ ẩm tốt? Mái đặt sao để che nắng?'}
+            {ten: 'Dựng mô hình', noiDung: 'Làm một góc vườn mini có chậu, đất, đường nước hoặc mái che liên quan đến vấn đề của em.'},
+            {ten: 'Thiết kế thử công bằng', noiDung: 'Dùng hai cốc đất giống nhau; chỉ đổi một thứ (ví dụ mái che hoặc lượng nước), giữ những thứ khác giống nhau.'},
+            {ten: 'Chạy và ghi số', noiDung: 'Thử, quan sát và ghi kết quả: lượng nước, thời gian, độ ướt hoặc điều em đo được.'},
+            {ten: 'Kể lại kết luận', noiDung: 'Viết một câu có dữ liệu: “Khi…, em thấy… nên…”. Nêu cả điều em chưa chắc.'}
         ],
-        hoiAI: [
-            'Em nên giữ cố định cái gì và đổi cái gì để so sánh cho công bằng?',
-            'Vật liệu nào giữ ẩm tốt hơn?'
-        ],
-        tuKiemTra: [
-            'Em đã làm xong mô hình vườn mini chưa?',
-            'Em có bảng ghi kết quả thử nghiệm chưa?',
-            'Em rút ra được điều gì cho khu vườn thật chưa?'
-        ],
-        sanPham: 'Mô hình vườn tái chế và một bảng thử nghiệm nguyên lý.',
-        anToan: 'Nhờ người lớn khi dùng kéo hoặc dao. Lau nước đổ ra sàn để tránh trơn trượt.',
-        chuanBiBaiSau: 'Bài 3 bắt đầu dùng mạch điện — chuẩn bị Mạch Thing và cảm biến độ ẩm đất.'
+        hoiAI: ['Em nên giữ cố định cái gì và đổi cái gì để so sánh công bằng?', 'Câu kết luận này đã dựa vào quan sát hay chỉ là đoán?'],
+        tuKiemTra: ['Em có mô hình liên quan vấn đề Bài 1 chưa?', 'Em chỉ thay đổi một yếu tố trong lúc thử chưa?', 'Em ghi được kết quả và một câu kết luận chưa?'],
+        sanPham: 'Mô hình vườn mini cùng bảng thử nghiệm và kết luận ngắn.',
+        anToan: 'Nhờ người lớn khi dùng kéo hoặc dao; lau nước đổ để tránh trơn.',
+        chuanBiBaiSau: 'Chuẩn bị ThingBot, cảm biến độ ẩm đất, đất khô và đất ẩm cho Bài 3.'
     },
     {
-        so: 3,
-        ten: 'Mạch Thing + độ ẩm đất',
-        phuDe: 'Vườn biết "khát" — bài điện tử đầu tiên.',
-        thoiLuong: '90 phút',
-        hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
-        coLapTrinh: true,
-        khoiLenh: ['soilMoisture', 'arduinoThingBotC3'],
+        so: 3, ten: 'ThingBot đo độ ẩm đất',
+        phuDe: 'Đo hai đầu trước, rồi mới dạy vườn báo khát.', thoiLuong: '90 phút',
+        hoatDongDe: 'Chặng 2 · Hiểu KIT', coLapTrinh: true, khoiLenh: ['soilMoisture', 'arduinoThingBotC3'],
         tutorial: [
-            {title: 'Đọc độ ẩm đất', text: 'Mở nhóm Độ ẩm đất. Tìm khối đọc giá trị cảm biến.', target: 'category:soilMoisture'},
-            {title: 'Ghép điều kiện', text: 'Kéo khối vào vùng giữa và thử so sánh số đo với một ngưỡng.', target: 'workspace'},
-            {title: 'Chạy thử', text: 'Cắm cảm biến, kết nối ThingBot rồi nạp chương trình để xem đất khô và ẩm khác nhau thế nào.', target: 'upload'}
+            {title: 'Cắm cảm biến S1', text: 'Cắm đầu dò độ ẩm vào S1, sau đó bật mạch.', target: 'workspace'},
+            {title: 'Đo hai đầu', text: 'Đo đất khô và đất ẩm, ghi hai số rồi chọn ngưỡng ở giữa.', target: 'category:soilMoisture'},
+            {title: 'Ghép còi báo', text: 'Kéo điều kiện nếu–thì và đặt còi vào bên trong.', target: 'workspace'},
+            {title: 'Nạp và thử', text: 'Nạp vào ThingBot rồi thử lại bằng đất khô và đất ẩm.', target: 'upload'}
         ],
-        moDau: 'Hôm nay mạch của em sẽ "cảm nhận" được đất khô hay ẩm. Làm trên bàn thôi, chưa lắp vào vườn vội.',
-        mucTieu: [
-            'Hiểu "đầu vào" — cách mạch thu nhận thông tin từ cảm biến',
-            'Cắm được cảm biến độ ẩm đất và đọc giá trị',
-            'Dùng khối điều kiện: đất khô thì kêu còi'
-        ],
-        chuanBi: 'Mạch Thing, cảm biến độ ẩm đất, còi buzzer, dây; một ly đất khô và một ly đất ẩm để thử.',
+        moDau: 'Hôm nay em cho ThingBot một giác quan: biết đất đang khô hay ẩm, dựa trên số em tự đo.',
+        mucTieu: ['Cắm cảm biến độ ẩm đất vào S1', 'Đo giá trị khô – ẩm và chọn ngưỡng có lý do', 'Lập trình đất khô thì còi báo'],
+        chuanBi: 'ThingBot, cảm biến độ ẩm đất, đất khô, đất ẩm, dây USB.',
         cacBuoc: [
-            {ten: 'Làm quen bộ não của vườn', noiDung: 'Nhận biết cổng nguồn, GND và cổng tín hiệu trên Mạch Thing. Quy tắc vàng: tắt nguồn trước khi đổi dây.'},
-            {ten: 'Cắm cảm biến', noiDung: 'Cắm cảm biến độ ẩm đất vào cổng, đúng chiều ba dây: tín hiệu – 5V – GND.'},
-            {ten: 'Đọc số', noiDung: 'Kéo khối "độ ẩm đất ở cổng ... (%)" ra. Nhúng đầu dò vào đất khô rồi đất ẩm, xem số thay đổi.'},
-            {ten: 'Báo khi khô', noiDung: 'Dùng khối "nếu ... thì": đất khô thì cho còi kêu. Đây là chương trình thật đầu tiên của em.'}
+            {ten: 'Cắm và bật', noiDung: 'Kiểm tra nguồn và cắm cảm biến đất vào S1.'},
+            {ten: 'Đo hai đầu', noiDung: 'Ghi số khi đầu dò ở đất khô và đất ẩm.'},
+            {ten: 'Chọn ngưỡng', noiDung: 'Chọn một số ở giữa hai lần đo và giải thích vì sao.'},
+            {ten: 'Ghép khối, cho còi kêu', noiDung: 'Đất khô dưới ngưỡng thì còi báo.'},
+            {ten: 'Chỉnh cho vừa', noiDung: 'Thử lại, chỉnh ngưỡng nếu còi báo quá sớm hoặc quá muộn.'}
         ],
-        hoiAI: [
-            'Số lúc khô và lúc ẩm chênh nhau bao nhiêu? Em chọn ngưỡng ở giữa được không?',
-            'Vì sao em chọn mốc ngưỡng đó?',
-            'Cảm biến không ra số, em nên kiểm tra gì trước?'
-        ],
-        tuKiemTra: [
-            'Em đọc được số từ cảm biến chưa?',
-            'Em đã tự đo giá trị lúc đất khô và lúc đất ẩm chưa?',
-            'Còi có kêu đúng lúc đất khô không?'
-        ],
-        sanPham: 'Một thiết bị "báo đất khô" cầm tay chạy độc lập.',
-        anToan: 'Tay khô ráo khi cắm dây. Chỉ nhúng đầu dò, không nhúng phần mạch điện tử. Tắt nguồn trước khi đổi dây.',
-        chuanBiBaiSau: 'Bài 4 thêm nhiều giác quan: DHT11, ánh sáng, không khí, siêu âm và màn OLED.'
+        hoiAI: ['Hai số em đo được là bao nhiêu? Ngưỡng ở giữa là số nào?', 'Cảm biến không ra số: kiểm tra nguồn, dây, cổng hay chương trình trước?'],
+        tuKiemTra: ['Em đã đọc được số từ cảm biến chưa?', 'Em đã ghi số đất khô và đất ẩm chưa?', 'Em chọn được ngưỡng có lý do chưa?', 'Còi có báo đúng lúc đất khô không?'],
+        sanPham: 'Thiết bị báo đất khô đã nạp thật vào ThingBot.',
+        anToan: 'Tay khô khi cắm dây; chỉ nhúng đầu dò, không nhúng mạch.',
+        chuanBiBaiSau: 'Chuẩn bị DHT11, cảm biến ánh sáng, siêu âm và OLED cho Bài 4.'
     },
     {
-        so: 4,
-        ten: 'Cụm cảm biến môi trường',
-        phuDe: 'Cho vườn nhiều giác quan và biết hiển thị dữ liệu.',
-        thoiLuong: '90–120 phút',
-        hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
-        coLapTrinh: true,
-        khoiLenh: ['dht', 'ultrasonic', 'oled', 'soilMoisture', 'arduinoThingBotC3'],
-        tutorial: [
-            {title: 'Đọc nhiệt độ và độ ẩm', text: 'Bắt đầu ở nhóm DHT để lấy hai số đo đầu tiên của môi trường.', target: 'category:dht'},
-            {title: 'Thêm các giác quan', text: 'Các nhóm siêu âm, OLED và độ ẩm đất đã được mở sẵn cho bài này.', target: 'toolbox'},
-            {title: 'Ghép trạm đo', text: 'Kéo các khối vào vùng giữa, đọc từng cảm biến trước khi ghép thành chương trình lớn.', target: 'workspace'},
-            {title: 'Chạy thử', text: 'Kết nối ThingBot và nạp chương trình để kiểm tra từng số đo.', target: 'upload'}
-        ],
-        moDau: 'Mỗi con cảm biến là một giác quan cho vườn. Hôm nay vườn của em có thêm mắt, mũi và tai.',
-        mucTieu: [
-            'Đọc được DHT11 (nhiệt độ, độ ẩm), cảm biến ánh sáng và chất lượng không khí',
-            'Dùng siêu âm SRF04 đo mức nước trong bồn',
-            'Hiển thị các thông số lên màn OLED'
-        ],
-        chuanBi: 'Mạch Thing, DHT11, cảm biến ánh sáng, cảm biến chất lượng không khí, siêu âm SRF04, cảm biến âm thanh, OLED, dây; một cốc nước để thử đo mức.',
+        so: 4, ten: 'Bốn giác quan của khu vườn',
+        phuDe: 'Đọc, so sánh và hiện dữ liệu môi trường.', thoiLuong: '90–120 phút',
+        hoatDongDe: 'Chặng 2 · Hiểu KIT', coLapTrinh: true, khoiLenh: ['dht', 'ultrasonic', 'oled', 'soilMoisture', 'arduinoThingBotC3'],
+        moDau: 'Một số đo chưa kể hết câu chuyện. Hôm nay vườn có nhiệt độ, ánh sáng, nước và màn hình để nhìn dữ liệu.',
+        mucTieu: ['Đọc DHT11 ở S2, ánh sáng S3 và siêu âm S4', 'Hiện các số quan trọng lên OLED', 'Tính một giá trị so sánh với ngưỡng'],
+        chuanBi: 'ThingBot, DHT11 (S2), ánh sáng (S3), siêu âm (S4), OLED, cốc nước.',
         cacBuoc: [
-            {ten: 'Thêm giác quan', noiDung: 'Bày các cảm biến ra bàn, xem mỗi con đo được gì.'},
-            {ten: 'Nhiệt – ẩm – sáng – không khí', noiDung: 'Cắm và đọc lần lượt DHT11, cảm biến ánh sáng, cảm biến chất lượng không khí. Hiểu từng thông số nghĩa là gì.'},
-            {ten: 'Đo mức nước', noiDung: 'Siêu âm đo khoảng cách tới mặt nước trong cốc. Biết còn bao nhiêu nước để sau này không bơm khô.'},
-            {ten: 'Hiện lên OLED', noiDung: 'Đưa các số lên màn hình, cập nhật mỗi 2 giây.'}
+            {ten: 'Đọc nhiệt – ẩm', noiDung: 'Cắm DHT11 vào S2 và ghi hai số.'},
+            {ten: 'Đọc ánh sáng', noiDung: 'Cắm cảm biến ánh sáng S3, thử che và mở sáng.'},
+            {ten: 'Đo bồn nước', noiDung: 'Dùng siêu âm S4 đo khoảng cách tới mặt nước.'},
+            {ten: 'Hiện và so sánh', noiDung: 'Đưa số lên OLED; tính nhiệt độ đang cách ngưỡng nóng bao xa.'},
+            {ten: 'Kể lại', noiDung: 'Chọn một số thay đổi rõ nhất và giải thích bằng lần thử của em.'}
         ],
-        hoiAI: [
-            'Em nên đưa thông tin nào lên màn trước?',
-            'Làm sao quy đổi khoảng cách siêu âm thành "còn nhiều nước" hay "sắp hết"?',
-            'Vì sao số của cảm biến cứ nhảy liên tục?'
-        ],
-        tuKiemTra: [
-            'Em đọc được cả bốn loại cảm biến chưa?',
-            'Siêu âm đo mức nước có hợp lý không?',
-            'Màn OLED hiện đủ thông số chưa?'
-        ],
-        sanPham: 'Một "trạm đo môi trường mini" hiển thị nhiệt độ, độ ẩm, ánh sáng, chất lượng không khí và mức nước.',
-        anToan: 'Đặt cảm biến và mạch nơi khô, tránh nước bắn. Kiểm tra cắm đúng chiều chân trước khi bật nguồn.',
-        chuanBiBaiSau: 'Bài 5 học điều khiển bơm, quạt, đèn qua relay.'
+        hoiAI: ['Số nào nên hiện trước trên OLED?', 'Vì sao số cảm biến thay đổi liên tục?'],
+        tuKiemTra: ['Em đọc được DHT11 chưa?', 'Em thử được ánh sáng hoặc khoảng cách nước chưa?', 'OLED có hiện dữ liệu em cần chưa?', 'Em có so sánh được một số với ngưỡng chưa?'],
+        sanPham: 'Trạm đo môi trường mini có màn OLED.', anToan: 'Đặt mạch xa nước và tắt nguồn trước khi đổi dây.',
+        chuanBiBaiSau: 'Chuẩn bị relay, bơm M1, quạt M2 và đèn M3 cho Bài 5.'
     },
     {
-        so: 5,
-        ten: 'Cụm đầu ra qua relay',
-        phuDe: 'Vườn cảm nhận được rồi, giờ dạy nó hành động.',
-        thoiLuong: '90 phút',
-        hoatDongDe: 'Vận hành Vườn IoT · DIY loại 2 · Làm trên bàn',
-        coLapTrinh: true,
-        khoiLenh: ['passiveBuzzer', 'arduinoThingBotC3'],
-        tutorial: [
-            {title: 'Thử tín hiệu đầu ra', text: 'Mở nhóm Còi thụ động và chọn một âm báo ngắn để thử trước.', target: 'category:passiveBuzzer'},
-            {title: 'Ghép lệnh an toàn', text: 'Trong vùng giữa, đặt thời gian chạy ngắn và luôn có lệnh tắt đầu ra.', target: 'workspace'},
-            {title: 'Chạy thử', text: 'Kiểm tra dây và nguồn riêng của tải trước khi nạp chương trình.', target: 'upload'}
-        ],
-        moDau: 'Bơm, quạt, đèn là những "tải lớn" — không nối thẳng vào mạch được. Relay chính là công tắc điện tử giúp mạch nhỏ điều khiển đồ lớn an toàn.',
-        mucTieu: [
-            'Hiểu relay là công tắc điện tử cho tải lớn',
-            'Bật/tắt được bơm nước, quạt, đèn 10W và còi',
-            'Biết vì sao tải lớn phải đi qua relay'
-        ],
-        chuanBi: 'Mạch Thing, relay 5V, bơm mini, quạt 5V, đèn 10W (nguồn riêng, có tản nhiệt), cảm biến ánh sáng, còi buzzer, dây.',
+        so: 5, ten: 'Dạy vườn hành động',
+        phuDe: 'Từ dữ liệu sang bơm, quạt, đèn — đúng lúc và có giới hạn.', thoiLuong: '90–120 phút',
+        hoatDongDe: 'Chặng 2 · Hiểu KIT', coLapTrinh: true, khoiLenh: ['soilMoisture', 'arduinoThingBotC3'],
+        moDau: 'Cảm biến chỉ nói cho mạch biết tình hình. Relay và các đầu ra mới giúp khu vườn làm điều hữu ích.',
+        mucTieu: ['Hiểu relay là công tắc cho tải', 'Thử bơm M1, quạt M2, đèn M3 an toàn', 'Tưới theo điều kiện và thời gian, rồi đếm lượt tưới'],
+        chuanBi: 'ThingBot, relay, bơm M1, quạt M2, đèn M3, nguồn phù hợp và cảm biến đất.',
         cacBuoc: [
-            {ten: 'Đầu ra là gì', noiDung: 'Bày bơm, quạt, đèn, còi ra bàn. Đây là những thứ giúp vườn hành động.'},
-            {ten: 'Relay là công tắc', noiDung: 'Nối relay, nghe tiếng "tách", bật tắt quạt. Hiểu vì sao không nối thẳng đèn 10W vào mạch.'},
-            {ten: 'Đèn trồng cây', noiDung: 'Che cảm biến ánh sáng cho tối, đèn 10W tự bật qua relay.'},
-            {ten: 'Thử từng đầu ra', noiDung: 'Bật lần lượt bơm, quạt, đèn, còi. Bơm chạy vài giây rồi tự tắt.'}
+            {ten: 'Hiểu relay', noiDung: 'Thử công tắc relay và nhận ra vì sao tải không nối thẳng vào mạch.'},
+            {ten: 'Thử bơm M1', noiDung: 'Chạy bơm trong thời gian ngắn, quan sát dòng nước.'},
+            {ten: 'Thử quạt và đèn', noiDung: 'Điều khiển quạt M2, đèn M3 từng cái một.'},
+            {ten: 'Tưới có giới hạn', noiDung: 'Đất khô thì bật bơm vài giây, sau đó tắt.'},
+            {ten: 'Đếm lượt tưới', noiDung: 'Lưu biến đếm và ghi mỗi lần bơm đã chạy.'}
         ],
-        hoiAI: [
-            'Tải nào cần nguồn riêng?',
-            'Bật đèn liên tục có hao pin và nóng không?',
-            'Bơm nên chạy bao nhiêu giây một lần tưới?'
-        ],
-        tuKiemTra: [
-            'Em bật tắt được cả bơm, quạt, đèn và còi chưa?',
-            'Em giải thích được vì sao cần relay chưa?',
-            'Đèn có tự bật khi em che cảm biến ánh sáng không?'
-        ],
-        sanPham: 'Một "bàn thử đầu ra" điều khiển được bơm, quạt, đèn và còi.',
-        anToan: 'Đèn 10W rất nóng và chói: dùng nguồn riêng, có tản nhiệt, không nhìn thẳng, không chạm khi đang sáng. Giữ nước xa mạch điện.',
-        chuanBiBaiSau: 'Bài 6 lắp tất cả vào khu vườn thật — chuẩn bị mô hình vườn từ Bài 2, bồn nước và ống.'
+        hoiAI: ['Vì sao bơm cần chạy có thời gian giới hạn?', 'Nếu tưới quá nhiều lần, em kiểm tra ngưỡng hay thời gian trước?'],
+        tuKiemTra: ['Em thử từng đầu ra an toàn chưa?', 'Bơm có tự tắt sau thời gian đặt trước chưa?', 'Em có ghi hoặc đếm được lượt tưới chưa?'],
+        sanPham: 'Cụm tưới giới hạn thời gian, có dữ liệu lượt tưới.', anToan: 'Nước và nguồn tải phải xa mạch; nhờ người lớn kiểm tra phần relay/nguồn.',
+        chuanBiBaiSau: 'Chuẩn bị các số đo đã ghi để tìm quy luật ở Bài 6.'
     },
     {
-        so: 6,
-        ten: 'DIY lắp tất cả vào khu vườn',
-        phuDe: 'Giờ là lúc mọi mảnh ghép về đúng chỗ.',
-        thoiLuong: '120 phút trở lên',
-        hoatDongDe: 'Vận hành Vườn IoT → Dự án xanh · DIY loại 2 (tích hợp)',
-        coLapTrinh: true,
-        khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'passiveBuzzer', 'arduinoThingBotC3'],
-        tutorial: [
-            {title: 'Bắt đầu từ đất', text: 'Mở nhóm Độ ẩm đất. Đây là tín hiệu đầu tiên để khu vườn quyết định có cần tưới.', target: 'category:soilMoisture'},
-            {title: 'Ghép chương trình tổng', text: 'Trong vùng giữa, ghép theo thứ tự: đọc cảm biến → quyết định → điều khiển → hiển thị.', target: 'workspace'},
-            {title: 'Kiểm tra từng phần', text: 'Nạp chương trình và thử từng cụm riêng trước khi cho cả khu vườn chạy cùng lúc.', target: 'upload'}
-        ],
-        moDau: 'Từng cụm em đã hiểu rồi. Hôm nay ráp tất cả thành một khu vườn thông minh chạy được thật.',
-        mucTieu: [
-            'Gắn toàn bộ cảm biến và đầu ra vào vườn tái chế',
-            'Viết một chương trình tổng cho cả khu vườn',
-            'Đi dây gọn gàng, dán nhãn cho dễ sửa'
-        ],
-        chuanBi: 'Toàn bộ linh kiện và khu vườn tái chế từ các bài trước, bồn nước và ống.',
+        so: 6, ten: 'Từ số đo đến quy luật',
+        phuDe: 'Không chỉ nhìn từng số — tìm mẫu và kiểm tra lại.', thoiLuong: '90 phút',
+        hoatDongDe: 'Chặng 3 · Dữ liệu & lập luận', coLapTrinh: true, khoiLenh: ['dht', 'soilMoisture', 'arduinoThingBotC3'],
+        moDau: 'Dữ liệu không tự nói. Em sẽ so sánh nhiều lần đo để tìm quy luật, rồi kiểm tra xem quy luật đó có thật không.',
+        mucTieu: ['So sánh ba tình huống từ số đo', 'Đề xuất một công thức/chỉ số đơn giản', 'Kiểm tra công thức bằng dữ liệu khác'],
+        chuanBi: 'Sổ tay số đo các bài trước, ThingBot và các cảm biến cần dùng.',
         cacBuoc: [
-            {ten: 'Ráp lại', noiDung: 'Bày các cụm đã làm cạnh khu vườn tái chế.'},
-            {ten: 'Gắn cảm biến', noiDung: 'Độ ẩm vào đất, siêu âm trên bồn nước, DHT11 và cảm biến không khí, ánh sáng lên khung. Tránh nước, đi dây theo cổng.'},
-            {ten: 'Gắn đầu ra qua relay', noiDung: 'Bơm vào bồn, quạt và đèn 10W dùng nguồn riêng. Kiểm tra nguồn trước khi chạy.'},
-            {ten: 'Chương trình tổng', noiDung: 'Vòng lặp chính: đọc cảm biến → tưới → quạt → cảnh báo mức nước → đèn theo ánh sáng → cập nhật OLED.'}
+            {ten: 'Nhìn từng số', noiDung: 'Chọn dữ liệu nhiệt độ, đất hoặc ánh sáng em đã ghi.'},
+            {ten: 'So sánh ba trường hợp', noiDung: 'Đặt ba lần đo cạnh nhau: khi nào cao, thấp, khác nhau?'},
+            {ten: 'Tìm quy luật', noiDung: 'Nói thử một mẫu: “Khi…, thì…”.'},
+            {ten: 'Tạo chỉ số', noiDung: 'Tạo một phép tính đơn giản, ví dụ nhiệt độ trừ một phần độ ẩm.'},
+            {ten: 'Kiểm tra lại', noiDung: 'Đem quy luật thử với dữ liệu/lần đo khác và ghi điều chưa đúng.'}
         ],
-        hoiAI: [
-            'Vườn chạy sai, em nên kiểm tra theo thứ tự nào?',
-            'Nguồn → dây → cổng → code → tải, em đang kẹt ở bước nào?',
-            'Làm sao tổ chức chương trình cho gọn và dễ sửa?'
-        ],
-        tuKiemTra: [
-            'Vườn có tự tưới khi đất khô không?',
-            'Quạt và đèn có chạy đúng điều kiện không?',
-            'OLED hiện đủ thông tin không?',
-            'Khi bơm, quạt, đèn cùng chạy thì có bị sụt nguồn không?'
-        ],
-        sanPham: 'Một khu vườn thông minh hoàn chỉnh chạy tự động toàn bộ chức năng.',
-        anToan: 'Kiểm tra tổng dòng khi bơm, quạt, đèn cùng chạy. Đèn 10W nguồn riêng và có tản nhiệt. Chạy thử một lúc rồi kiểm tra linh kiện có nóng bất thường không.',
-        chuanBiBaiSau: 'Bài 7 em sẽ thêm chức năng của riêng mình và tập thuyết trình.'
+        hoiAI: ['Ba lần đo này có quy luật gì, hay chỉ là trùng hợp?', 'Công thức của em cần kiểm tra lại ở trường hợp nào?'],
+        tuKiemTra: ['Em có ba trường hợp để so sánh chưa?', 'Em nêu được một quy luật có điều kiện chưa?', 'Em đã kiểm tra lại quy luật bằng lần đo khác chưa?'],
+        sanPham: 'Một chỉ số hoặc quy luật nhỏ, kèm bằng chứng thử lại.', anToan: 'Áp dụng an toàn điện như các bài trước.',
+        chuanBiBaiSau: 'Chuẩn bị cảm biến chất lượng không khí cho Bài 7.'
     },
     {
-        so: 7,
-        ten: 'Dự án riêng + showcase',
-        phuDe: 'Vấn đề em chọn ở Bài 1 — giờ giải nó theo cách của em.',
-        thoiLuong: '120 phút trở lên',
-        hoatDongDe: 'Dự án xanh riêng & Trình bày · Gộp cả hai loại DIY',
-        coLapTrinh: true,
-        khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'passiveBuzzer', 'arduinoThingBotC3'],
-        tutorial: [
-            {title: 'Chọn chức năng em muốn đổi', text: 'Các khối của cả khu vườn đã sẵn sàng. Em chọn một giác quan hoặc một hành động để cải tiến.', target: 'toolbox'},
-            {title: 'Tạo phiên bản của em', text: 'Ghép ý tưởng trong vùng giữa rồi đặt một tiêu chí đo được để biết nó có thành công không.', target: 'workspace'},
-            {title: 'Test và cải tiến', text: 'Nạp chương trình, thử ít nhất hai lượt và ghi lại một điều em đã thay đổi.', target: 'upload'}
-        ],
-        moDau: 'Khu vườn giờ là của em. Quay lại vấn đề em chọn ở Bài 1 và thêm một chức năng để giải nó.',
-        mucTieu: [
-            'Tự thiết kế thêm hoặc đổi một chức năng cho vườn',
-            'Test ít nhất hai lượt và cải tiến một yếu tố',
-            'Trình bày được sản phẩm trong 2–3 phút'
-        ],
-        chuanBi: 'Các linh kiện còn lại và đồ tái chế tuỳ ý; Sổ tay Maker; slide hoặc poster.',
+        so: 7, ten: 'Không khí có đang khác thường?',
+        phuDe: 'Đo nền trước, rồi mới gọi đó là cảnh báo.', thoiLuong: '90 phút',
+        hoatDongDe: 'Chặng 3 · Dữ liệu & lập luận', coLapTrinh: true, khoiLenh: ['arduinoThingBotC3'],
+        moDau: 'Một cảm biến không khí cần thời gian ổn định. Em sẽ đo mức bình thường trước khi đặt ngưỡng cảnh báo.',
+        mucTieu: ['Hiểu cảm biến cần làm nóng/ổn định', 'Ghi được mức nền', 'Lập trình báo khi lệch nền và đo độ trễ'],
+        chuanBi: 'ThingBot, cảm biến chất lượng không khí, sổ tay, không gian thông thoáng.',
         cacBuoc: [
-            {ten: 'Vườn của em', noiDung: 'Nghĩ một nâng cấp: nhắc tưới, đếm ngày, báo không khí xấu... miễn là giải được vấn đề em chọn ở Bài 1.'},
-            {ten: 'Thiết kế và làm', noiDung: 'Tự thêm chức năng. Ghi lại quyết định và lỗi vào Sổ tay Maker.'},
-            {ten: 'Test và cải tiến', noiDung: 'Chạy thử, sửa một yếu tố rồi thử lại. Lỗi là dữ liệu, cứ thử tiếp.'},
-            {ten: 'Tập thuyết trình', noiDung: 'Cấu trúc bài nói 2–3 phút: vấn đề – giải pháp – dữ liệu – hạn chế.'}
+            {ten: 'Làm quen cảm biến', noiDung: 'Cắm cảm biến và chờ ổn định theo hướng dẫn phần cứng.'},
+            {ten: 'Ghi mức nền', noiDung: 'Ghi các số ở không khí bình thường.'},
+            {ten: 'Chọn độ lệch', noiDung: 'Đặt ngưỡng dựa vào mức nền, không dùng số đoán sẵn.'},
+            {ten: 'Thử cảnh báo', noiDung: 'Thử trong điều kiện an toàn và ghi thời gian từ thay đổi tới báo hiệu.'},
+            {ten: 'Sai và sửa', noiDung: 'Nếu báo quá nhạy/chậm, chỉnh một yếu tố rồi thử lại.'}
         ],
-        hoiAI: [
-            'Nếu em làm vậy thì chuyện gì xảy ra?',
-            'Làm sao đặt tiêu chí thành công đo được?',
-            'Sản phẩm của em còn hạn chế gì?'
+        hoiAI: ['Vì sao không nên lấy một số ngẫu nhiên làm ngưỡng không khí?', 'Độ trễ của em bao nhiêu giây?'],
+        tuKiemTra: ['Em chờ cảm biến ổn định chưa?', 'Em ghi được mức nền chưa?', 'Ngưỡng của em có dựa vào mức nền chưa?', 'Em thử và ghi độ trễ chưa?'],
+        sanPham: 'Cảnh báo không khí có mức nền và kết quả thử.', anToan: 'Không tạo khói hoặc hít chất lạ để thử; làm nơi thông thoáng, có người lớn.',
+        chuanBiBaiSau: 'Mang mô hình và các cụm đã làm để tích hợp ở Bài 8.'
+    },
+    {
+        so: 8, ten: 'Lắp thành khu vườn chạy được',
+        phuDe: 'Tích hợp từng lớp, không cắm hết rồi mới mong nó chạy.', thoiLuong: '120 phút trở lên',
+        hoatDongDe: 'Chặng 3 · Tích hợp hệ thống', coLapTrinh: true, khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'arduinoThingBotC3'],
+        moDau: 'Một dự án lớn dễ lỗi nếu làm tất cả cùng lúc. Em sẽ ráp theo bốn lớp và thử từng lớp.',
+        mucTieu: ['Bố trí cơ khí gọn, an toàn', 'Thử riêng cảm biến và đầu ra', 'Ghép thành chương trình tích hợp'],
+        chuanBi: 'Mô hình Bài 2, các cảm biến/đầu ra đã dùng, dây, nhãn dán và sổ tay.',
+        cacBuoc: [
+            {ten: 'Bố trí cơ khí', noiDung: 'Đặt chậu, bồn, mạch và dây ở vị trí khô, dễ kiểm tra.'},
+            {ten: 'Thử cảm biến', noiDung: 'Đọc từng cảm biến trước khi nối chung.'},
+            {ten: 'Thử đầu ra tay', noiDung: 'Thử bơm, quạt, đèn từng cái với thời gian ngắn.'},
+            {ten: 'Tích hợp chương trình', noiDung: 'Ghép đọc → quyết định → hành động → hiển thị; sửa từng lỗi một.'},
+            {ten: 'Chạy kiểm tra', noiDung: 'Ghi điều chạy được, điều chưa ổn và thứ tự em đã sửa.'}
         ],
-        tuKiemTra: [
-            'Chức năng mới có giải được vấn đề Bài 1 không?',
-            'Em đã test ít nhất hai lượt chưa?',
-            'Em nêu được hạn chế của sản phẩm không?',
-            'Sổ tay Maker đã đầy đủ chưa?'
+        hoiAI: ['Hệ thống lỗi thì kiểm tra theo thứ tự nguồn – dây – cổng – linh kiện – chương trình – ngưỡng được không?', 'Em nên tách phần nào ra để thử trước?'],
+        tuKiemTra: ['Bố trí của em an toàn và có nhãn chưa?', 'Các cảm biến đọc riêng được chưa?', 'Các đầu ra thử riêng được chưa?', 'Em có một lượt chạy tích hợp và nhật ký sửa lỗi chưa?'],
+        sanPham: 'Khu vườn thông minh tích hợp, có nhật ký thử và sửa.', anToan: 'Tắt nguồn khi đổi dây; nguồn tải riêng và nước phải cách mạch.',
+        chuanBiBaiSau: 'Mở lại vấn đề Bài 1, ảnh/ghi chép và dữ liệu thử để làm dự án cuối.'
+    },
+    {
+        so: 9, ten: 'Dự án của em: thử, sửa, kể lại',
+        phuDe: 'Quay lại vấn đề đầu tiên và chứng minh giải pháp của em.', thoiLuong: '120 phút trở lên',
+        hoatDongDe: 'Chặng 3 · Dự án & trình bày', coLapTrinh: true, khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'arduinoThingBotC3'],
+        moDau: 'Đây là lúc em tự chọn một cải tiến, đặt thước đo thành công và kể lại cả điều chưa hoàn hảo.',
+        mucTieu: ['Nối giải pháp với vấn đề Bài 1', 'So sánh hai lần thử khi chỉ đổi một yếu tố', 'Trình bày sản phẩm bằng bằng chứng'],
+        chuanBi: 'Khu vườn Bài 8, Sổ tay, ảnh/số đo, poster hoặc slide nếu có.',
+        cacBuoc: [
+            {ten: 'Mở lại vấn đề', noiDung: 'Đọc lại: chuyện gì – ở đâu – khi nào em đã ghi ở Bài 1.'},
+            {ten: 'Đặt tiêu chí thành công', noiDung: 'Viết một tiêu chí đo được, không chỉ “trông có vẻ tốt”.'},
+            {ten: 'Thiết kế nâng cấp', noiDung: 'Chọn một chức năng hoặc cách bố trí để giải vấn đề.'},
+            {ten: 'Chạy lần 1', noiDung: 'Ghi số liệu/ảnh và điều xảy ra.'},
+            {ten: 'Chỉ sửa một thứ, chạy lần 2', noiDung: 'So sánh với lần 1 và nêu tác động của thay đổi.'},
+            {ten: 'Kể lại trong 3 phút', noiDung: 'Nói: vấn đề – giải pháp – bằng chứng – điều còn hạn chế – bước tiếp theo.'}
         ],
-        sanPham: 'Khu vườn cá nhân hoá với một chức năng riêng, kèm bài thuyết trình 2–3 phút và Sổ tay Maker.',
-        anToan: 'Áp dụng nguyên tắc an toàn của các bài trước cho phần mới. Nhờ người lớn kiểm tra trước khi cấp nguồn cho cơ cấu mới.',
+        hoiAI: ['Tiêu chí này đo được chưa?', 'Em chỉ đổi một thứ giữa hai lần thử chưa?', 'Bằng chứng nào giúp em kể dự án thuyết phục hơn?'],
+        tuKiemTra: ['Em nối được giải pháp với vấn đề Bài 1 chưa?', 'Em có tiêu chí thành công đo được chưa?', 'Em có dữ liệu của hai lần thử chưa?', 'Em nêu được một hạn chế và bước tiếp theo chưa?'],
+        sanPham: 'Dự án khu vườn cá nhân hoá, hai lượt thử và bài nói 3 phút.', anToan: 'Nhờ người lớn kiểm tra phần nguồn/relay mới trước khi chạy.',
         chuanBiBaiSau: ''
     }
 ];
