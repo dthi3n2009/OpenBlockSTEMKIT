@@ -89,7 +89,7 @@ const LESSONS = [
     {
         so: 5, ten: 'Dạy vườn hành động',
         phuDe: 'Từ dữ liệu sang bơm, quạt, đèn — đúng lúc và có giới hạn.', thoiLuong: '90–120 phút',
-        hoatDongDe: 'Chặng 2 · Hiểu KIT', coLapTrinh: true, khoiLenh: ['soilMoisture', 'arduinoThingBotC3'],
+        hoatDongDe: 'Chặng 2 · Hiểu KIT', coLapTrinh: true, khoiLenh: ['soilMoisture', 'arduinoThingBotC3', 'motorOutputs'],
         moDau: 'Cảm biến chỉ nói cho mạch biết tình hình. Relay và các đầu ra mới giúp khu vườn làm điều hữu ích.',
         mucTieu: ['Hiểu relay là công tắc cho tải', 'Thử bơm M1, quạt M2, đèn M3 an toàn', 'Tưới theo điều kiện và thời gian, rồi đếm lượt tưới'],
         chuanBi: 'ThingBot, relay, bơm M1, quạt M2, đèn M3, nguồn phù hợp và cảm biến đất.',
@@ -146,7 +146,7 @@ const LESSONS = [
     {
         so: 8, ten: 'Lắp thành khu vườn chạy được',
         phuDe: 'Tích hợp từng lớp, không cắm hết rồi mới mong nó chạy.', thoiLuong: '120 phút trở lên',
-        hoatDongDe: 'Chặng 3 · Tích hợp hệ thống', coLapTrinh: true, khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'arduinoThingBotC3'],
+        hoatDongDe: 'Chặng 3 · Tích hợp hệ thống', coLapTrinh: true, khoiLenh: ['soilMoisture', 'dht', 'ultrasonic', 'oled', 'arduinoThingBotC3', 'motorOutputs'],
         moDau: 'Một dự án lớn dễ lỗi nếu làm tất cả cùng lúc. Em sẽ ráp theo bốn lớp và thử từng lớp.',
         mucTieu: ['Bố trí cơ khí gọn, an toàn', 'Thử riêng cảm biến và đầu ra', 'Ghép thành chương trình tích hợp'],
         chuanBi: 'Mô hình Bài 2, các cảm biến/đầu ra đã dùng, dây, nhãn dán và sổ tay.',
